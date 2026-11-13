@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <title>VALORANT Match Result Overlay</title>
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      margin: 0;
-      padding: 0;
       background: transparent;
       font-family: 'Arial', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
       overflow: hidden;
@@ -14,53 +14,54 @@
       height: 1080px;
     }
 
+    /* 管理パネル切り替えボタン */
     #toggle-btn {
       position: fixed;
-      top: 10px;
-      left: 10px;
+      top: 15px;
+      left: 15px;
       z-index: 10000;
       background: #ff4655;
       color: white;
       border: none;
-      padding: 8px 12px;
+      padding: 10px 16px;
       border-radius: 4px;
       cursor: pointer;
       font-weight: bold;
-      font-size: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      font-size: 13px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
     }
 
+    /* 管理パネル本体 */
     #admin-panel {
       position: fixed;
-      top: 45px;
-      left: 10px;
+      top: 65px;
+      left: 15px;
       z-index: 9999;
       background: rgba(15, 25, 35, 0.96);
       border: 2px solid #ff4655;
-      padding: 15px;
+      padding: 16px;
       border-radius: 8px;
       color: white;
-      max-height: 88vh;
+      max-height: 85vh;
       overflow-y: auto;
-      width: 440px;
-      font-family: sans-serif;
+      width: 420px;
     }
 
     .panel-hidden { display: none !important; }
 
-    .section-title {
-      font-size: 13px;
+    .sec-title {
+      font-size: 12px;
       font-weight: bold;
-      padding: 6px 8px;
+      padding: 5px 8px;
       margin: 10px 0 6px 0;
       border-radius: 4px;
     }
-    .blue-title { background: #00b4d8; color: white; }
-    .red-title { background: #ff4655; color: white; }
-    .map-title { background: #ffb142; color: #111; }
+    .t-blue { background: #00b4d8; color: #fff; }
+    .t-red { background: #ff4655; color: #fff; }
+    .t-map { background: #ffb142; color: #111; }
 
-    .info-box {
-      background: rgba(255,255,255,0.08);
+    .ctrl-box {
+      background: rgba(255,255,255,0.06);
       padding: 8px;
       border-radius: 4px;
       margin-bottom: 8px;
@@ -73,33 +74,37 @@
       display: flex;
       flex-direction: column;
       gap: 3px;
-      margin-bottom: 6px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.04);
       padding: 6px;
       border-radius: 4px;
+      margin-bottom: 4px;
     }
-    .ctrl-inputs { display: flex; gap: 4px; }
-    .ctrl-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
-    .ctrl-label { font-size: 11px; font-weight: bold; }
+    .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+    .lbl-sm { font-size: 10px; color: #aaa; }
 
-    input[type="text"], input[type="number"], select {
-      padding: 5px 6px;
+    input, select {
+      padding: 5px;
       border-radius: 4px;
       border: 1px solid #364966;
       background: #111c24;
       color: white;
       font-size: 12px;
       width: 100%;
-      box-sizing: border-box;
     }
-    .lbl-sm { font-size: 10px; color: #aaa; margin-bottom: 2px; }
 
-    .btn-group { display: flex; gap: 8px; margin-bottom: 10px; }
-    .btn-control { flex: 1; padding: 8px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
-    .btn-reset { background: #e74c3c; color: white; }
+    .btn-reset {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
 
     /* =========================================
-       OVERLAY SCREEN (1920x1080) - 写真完全一致レイアウト
+       OBS用 オーバーレイ画面本体 (1920x1080)
        ========================================= */
     #overlay-container {
       width: 1920px;
@@ -113,12 +118,12 @@
       align-items: center;
     }
 
-    .screen-wrapper {
+    .screen-wrap {
       width: 1720px;
       height: 940px;
-      background: rgba(15, 20, 28, 0.92);
+      background: rgba(12, 18, 26, 0.94);
       border: 2px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 25px 60px rgba(0,0,0,0.95);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.95);
       display: flex;
       flex-direction: column;
       position: relative;
@@ -126,28 +131,25 @@
     }
 
     /* 1. 最上部チーム名ヘッダー */
-    .team-headers {
-      position: relative;
-      z-index: 2;
+    .teams-header {
       height: 90px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      background: rgba(10, 15, 22, 0.85);
+      background: rgba(8, 12, 18, 0.9);
       border-bottom: 2px solid rgba(255,255,255,0.15);
+      z-index: 2;
     }
-
-    .team-title-box {
+    .team-title {
       display: flex;
       align-items: center;
       padding: 0 50px;
-      font-size: 40px;
+      font-size: 38px;
       font-weight: 900;
       color: #fff;
-      letter-spacing: 1px;
       text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
     }
-    .team-title-box.blue { justify-content: flex-start; border-left: 8px solid #00b4d8; }
-    .team-title-box.red { justify-content: flex-end; border-right: 8px solid #ff4655; }
+    .team-title.blue { justify-content: flex-start; border-left: 8px solid #00b4d8; }
+    .team-title.red { justify-content: flex-end; border-right: 8px solid #ff4655; }
 
     /* 2. 中央指標ラベル（縦並び・中央寄せ） */
     .center-metrics {
@@ -155,7 +157,7 @@
       left: 50%;
       top: 130px;
       transform: translateX(-50%);
-      width: 220px;
+      width: 200px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -169,22 +171,20 @@
       color: #9ea7b3;
       letter-spacing: 2px;
       text-transform: uppercase;
-      background: rgba(15, 22, 30, 0.9);
+      background: rgba(15, 22, 30, 0.95);
       padding: 3px 16px;
       border-radius: 3px;
     }
 
-    /* 3. MVPセクション（上段：トッププレイヤー1人ずつ） */
+    /* 3. MVPセクション（上段：1人目・3項目縦並び） */
     .mvp-section {
-      position: relative;
-      z-index: 2;
       height: 220px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       border-bottom: 2px solid rgba(255,255,255,0.12);
-      background: rgba(10, 15, 22, 0.5);
+      background: rgba(10, 15, 22, 0.6);
+      z-index: 2;
     }
-
     .mvp-card {
       display: flex;
       align-items: center;
@@ -194,20 +194,20 @@
     .mvp-card.blue { justify-content: flex-start; }
     .mvp-card.red { justify-content: flex-end; flex-direction: row-reverse; }
 
-    .mvp-avatar-box {
+    .mvp-avatar {
       width: 150px;
       height: 190px;
       position: relative;
-      overflow: hidden;
       border-radius: 4px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      overflow: hidden;
       background: #16222c;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     }
-    .mvp-card.blue .mvp-avatar-box { border-left: 5px solid #00b4d8; }
-    .mvp-card.red .mvp-avatar-box { border-right: 5px solid #ff4655; }
-    .mvp-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+    .mvp-card.blue .mvp-avatar { border-left: 5px solid #00b4d8; }
+    .mvp-card.red .mvp-avatar { border-right: 5px solid #ff4655; }
+    .mvp-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
 
-    .mvp-tag {
+    .mvp-badge {
       position: absolute;
       top: 8px;
       background: #7b2cbf;
@@ -215,48 +215,44 @@
       font-size: 11px;
       font-weight: 900;
       padding: 2px 10px;
-      letter-spacing: 1px;
       border-radius: 2px;
+      letter-spacing: 1px;
     }
-    .mvp-card.blue .mvp-tag { left: 10px; }
-    .mvp-card.red .mvp-tag { right: 10px; }
+    .mvp-card.blue .mvp-badge { left: 8px; }
+    .mvp-card.red .mvp-badge { right: 8px; }
 
-    /* MVPの縦並びスタッツ */
-    .mvp-stats-block {
+    .mvp-stats {
       display: flex;
       flex-direction: column;
       gap: 10px;
       margin: 0 35px;
     }
-    .mvp-card.blue .mvp-stats-block { align-items: flex-start; }
-    .mvp-card.red .mvp-stats-block { align-items: flex-end; text-align: right; }
+    .mvp-card.blue .mvp-stats { align-items: flex-start; }
+    .mvp-card.red .mvp-stats { align-items: flex-end; text-align: right; }
 
-    .mvp-val {
+    .stat-val-mvp {
       font-size: 26px;
       font-weight: 900;
       color: #fff;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
       height: 32px;
       display: flex;
       align-items: center;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
     }
 
-    /* 4. 通常メンバーセクション（下段：2〜5人目） */
+    /* 4. 通常メンバーセクション（下段：2〜5人目・2項目縦並び） */
     .members-section {
-      position: relative;
-      z-index: 2;
       flex: 1;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      background: rgba(10, 15, 22, 0.35);
+      background: rgba(10, 15, 22, 0.4);
+      z-index: 2;
     }
-
     .members-col {
       display: flex;
       flex-direction: column;
       justify-content: space-around;
       padding: 12px 40px;
-      position: relative;
     }
     .members-col.blue { border-right: 1px solid rgba(255,255,255,0.08); }
 
@@ -283,16 +279,15 @@
     .members-col.blue .member-avatar { border-left: 3px solid #00b4d8; }
     .members-col.red .member-avatar { border-right: 3px solid #ff4655; }
 
-    /* 通常メンバーの縦並びスタッツ（KD, ACSの2項目） */
-    .member-stats-block {
+    .member-stats {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
-    .members-col.blue .member-stats-block { align-items: flex-start; }
-    .members-col.red .member-stats-block { align-items: flex-end; text-align: right; }
+    .members-col.blue .member-stats { align-items: flex-start; }
+    .members-col.red .member-stats { align-items: flex-end; text-align: right; }
 
-    .member-val {
+    .stat-val-member {
       font-size: 18px;
       font-weight: 900;
       color: #fff;
@@ -301,29 +296,24 @@
       align-items: center;
     }
 
-    /* 5. 左下のマップ表示ウィンドウ（ご要望のマップエリア） */
-    .map-display-box {
+    /* 5. 左下のマップ表示ウィンドウ */
+    .map-box {
       position: absolute;
       left: 40px;
       bottom: 25px;
-      width: 320px;
-      height: 180px;
+      width: 300px;
+      height: 170px;
       background: #0f1620;
-      border: 2px solid rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255,255,255,0.2);
       border-radius: 6px;
       overflow: hidden;
       box-shadow: 0 10px 25px rgba(0,0,0,0.8);
       z-index: 10;
     }
-    .map-display-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.85;
-    }
+    .map-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
 
     /* 6. 右下のチームロゴ枠 */
-    .team-logo-box {
+    .logo-box {
       position: absolute;
       right: 40px;
       bottom: 25px;
@@ -338,11 +328,7 @@
       box-shadow: 0 8px 20px rgba(0,0,0,0.8);
       z-index: 10;
     }
-    .team-logo-img {
-      max-width: 90%;
-      max-height: 90%;
-      object-fit: contain;
-    }
+    .logo-box img { max-width: 90%; max-height: 90%; object-fit: contain; }
   </style>
 </head>
 <body>
@@ -351,13 +337,10 @@
 
   <div id="admin-panel">
     <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定</h3>
+    <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
-    <div class="btn-group">
-      <button class="btn-control btn-reset" onclick="resetAllState()">全リセット</button>
-    </div>
-
-    <div class="section-title map-title">🗺️ マップ選択</div>
-    <div class="info-box">
+    <div class="sec-title t-map">🗺️ マップ選択</div>
+    <div class="ctrl-box">
       <select id="map-select" onchange="sendState()">
         <option value="ascent">Ascent (アセント)</option>
         <option value="haven">Haven (ヘイブン)</option>
@@ -370,124 +353,106 @@
       </select>
     </div>
 
-    <div class="section-title blue-title">BLUE TEAM (左側)</div>
-    <div class="info-box">
+    <div class="sec-title t-blue">BLUE TEAM (左側)</div>
+    <div class="ctrl-box">
       <input type="text" id="team-blue-name" value="東京TECH B" oninput="sendState()" placeholder="チーム名">
       <input type="text" id="team-blue-logo" value="" oninput="sendState()" placeholder="右下チームロゴURL">
     </div>
     <div id="blue-controls"></div>
 
-    <div class="section-title red-title">RED TEAM (右側)</div>
-    <div class="info-box">
+    <div class="sec-title t-red">RED TEAM (右側)</div>
+    <div class="ctrl-box">
       <input type="text" id="team-red-name" value="名古屋TECH B" oninput="sendState()" placeholder="チーム名">
     </div>
     <div id="red-controls"></div>
   </div>
 
-  <!-- オーバーレイ画面 (1920x1080) -->
+  <!-- オーバーレイ画面本体 -->
   <div id="overlay-container">
-    <div class="screen-wrapper">
-
-      <!-- 1. 最上部チーム名 -->
-      <div class="team-headers">
-        <div id="name-blue-display" class="team-title-box blue">東京TECH B</div>
-        <div id="name-red-display" class="team-title-box red">名古屋TECH B</div>
+    <div class="screen-wrap">
+      <!-- チーム名ヘッダー -->
+      <div class="teams-header">
+        <div id="name-blue-display" class="team-title blue">東京TECH B</div>
+        <div id="name-red-display" class="team-title red">名古屋TECH B</div>
       </div>
 
-      <!-- 2. 中央指標ラベル（縦並び） -->
+      <!-- 中央ラベル（縦並び） -->
       <div class="center-metrics">
         <div class="metric-item">KD</div>
         <div class="metric-item">ACS</div>
-        <div class="metric-item" id="fk-label-item">FIRST KILLS</div>
+        <div class="metric-item">FIRST KILLS</div>
       </div>
 
-      <!-- 3. MVPセクション (プレイヤー1：KD, ACS, FKの3項目) -->
+      <!-- MVPセクション (1人目：KD, ACS, FK) -->
       <div class="mvp-section">
-        <!-- BLUE MVP -->
         <div class="mvp-card blue">
-          <div class="mvp-avatar-box">
-            <div class="mvp-tag">MVP</div>
-            <img id="img-blue-1" class="mvp-img" src="images/jett.png" alt="agent">
+          <div class="mvp-avatar">
+            <div class="mvp-badge">MVP</div>
+            <img id="img-blue-1" src="images/jett.png" alt="agent">
           </div>
-          <div class="mvp-stats-block">
-            <div id="kda-blue-1" class="mvp-val">23 / 13</div>
-            <div id="acs-blue-1" class="mvp-val">340</div>
-            <div id="fk-blue-1" class="mvp-val">5</div>
+          <div class="mvp-stats">
+            <div id="kda-blue-1" class="stat-val-mvp">23 / 13</div>
+            <div id="acs-blue-1" class="stat-val-mvp">340</div>
+            <div id="fk-blue-1" class="stat-val-mvp">5</div>
           </div>
         </div>
 
-        <!-- RED MVP -->
         <div class="mvp-card red">
-          <div class="mvp-avatar-box">
-            <div class="mvp-tag">MVP</div>
-            <img id="img-red-1" class="mvp-img" src="images/omen.png" alt="agent">
+          <div class="mvp-avatar">
+            <div class="mvp-badge">MVP</div>
+            <img id="img-red-1" src="images/omen.png" alt="agent">
           </div>
-          <div class="mvp-stats-block">
-            <div id="kda-red-1" class="mvp-val">20 / 9</div>
-            <div id="acs-red-1" class="mvp-val">261</div>
-            <div id="fk-red-1" class="mvp-val">1</div>
+          <div class="mvp-stats">
+            <div id="kda-red-1" class="stat-val-mvp">20 / 9</div>
+            <div id="acs-red-1" class="stat-val-mvp">261</div>
+            <div id="fk-red-1" class="stat-val-mvp">1</div>
           </div>
         </div>
       </div>
 
-      <!-- 4. 通常メンバーセクション (プレイヤー2〜5：KD, ACSの2項目) -->
+      <!-- 通常メンバーセクション (2〜5人目：KD, ACS) -->
       <div class="members-section">
         <div id="blue-members-col" class="members-col blue"></div>
         <div id="red-members-col" class="members-col red"></div>
       </div>
 
-      <!-- 5. 左下のマップ表示ウィンドウ -->
-      <div class="map-display-box">
-        <img id="map-display-img" class="map-display-img" src="images/ascent.png" alt="map" onerror="this.src='images/sunset.png';">
+      <!-- 左下のマップ -->
+      <div class="map-box">
+        <img id="map-display-img" src="images/ascent.png" alt="map" onerror="this.src='images/sunset.png';">
       </div>
 
-      <!-- 6. 右下のチームロゴ枠 -->
-      <div id="team-logo-container" class="team-logo-box" style="display:none;">
-        <img id="team-logo-display" class="team-logo-img" src="" alt="logo" onerror="this.parentElement.style.display='none';">
+      <!-- 右下のチームロゴ -->
+      <div id="team-logo-container" class="logo-box" style="display:none;">
+        <img id="team-logo-display" src="" alt="logo" onerror="this.parentElement.style.display='none';">
       </div>
-
     </div>
   </div>
 
   <script>
     const agents = [
-      { category: "デュエリスト", list: [
-        { id: "jett", name: "ジェット" }, { id: "phoenix", name: "フェニックス" },
-        { id: "reyna", name: "レイナ" }, { id: "raze", name: "レイズ" },
-        { id: "yoru", name: "ヨル" }, { id: "neon", name: "ネオン" },
-        { id: "iso", name: "アイソ" }, { id: "waylay", name: "ウェイレイ" },
-        { id: "hash", name: "ハッシュ" }
-      ]},
-      { category: "イニシエーター", list: [
-        { id: "sova", name: "ソーヴァ" }, { id: "breach", name: "ブリーチ" },
-        { id: "skye", name: "スカイ" }, { id: "kayo", name: "KAY/O" },
-        { id: "fade", name: "フェイド" }, { id: "gekko", name: "ゲッコー" },
-        { id: "tejo", name: "テホ" }
-      ]},
-      { category: "コントローラー", list: [
-        { id: "brimstone", name: "ブリムストーン" }, { id: "omen", name: "オーメン" },
-        { id: "viper", name: "ヴァイパー" }, { id: "astra", name: "アストラ" },
-        { id: "harbor", name: "ハーバー" }, { id: "clove", name: "クローヴ" },
-        { id: "miks", name: "ミクス" }
-      ]},
-      { category: "センチネル", list: [
-        { id: "sage", name: "セージ" }, { id: "cypher", name: "サイファー" },
-        { id: "killjoy", name: "キルジョイ" }, { id: "chamber", name: "チェンバー" },
-        { id: "deadlock", name: "デッドロック" }, { id: "vyse", name: "ヴァイス" },
-        { id: "veto", name: "ヴィトー" }
-      ]}
+      { category: "デュエリスト", list: [{id:"jett",name:"ジェット"},{id:"phoenix",name:"フェニックス"},{id:"reyna",name:"レイナ"},{id:"raze",name:"レイズ"},{id:"yoru",name:"ヨル"},{id:"neon",name:"ネオン"},{id:"iso",name:"アイソ"},{id:"waylay",name:"ウェイレイ"},{id:"hash",name:"ハッシュ"}]},
+      { category: "イニシエーター", list: [{id:"sova",name:"ソーヴァ"},{id:"breach",name:"ブリーチ"},{id:"skye",name:"スカイ"},{id:"kayo",name:"KAY/O"},{id:"fade",name:"フェイド"},{id:"gekko",name:"ゲッコー"},{id:"tejo",name:"テホ"}]},
+      { category: "コントローラー", list: [{id:"brimstone",name:"ブリムストーン"},{id:"omen",name:"オーメン"},{id:"viper",name:"ヴァイパー"},{id:"astra",name:"アストラ"},{id:"harbor",name:"ハーバー"},{id:"clove",name:"クローヴ"},{id:"miks",name:"ミクス"}]},
+      { category: "センチネル", list: [{id:"sage",name:"セージ"},{id:"cypher",name:"サイファー"},{id:"killjoy",name:"キルジョイ"},{id:"chamber",name:"チェンバー"},{id:"deadlock",name:"デッドロック"},{id:"vyse",name:"ヴァイス"},{id:"veto",name:"ヴィトー"}]}
     ];
 
-    const TOPIC_URL = "https://ntfy.sh/josefu_val_result_exact_v2_2026";
+    const TOPIC_URL = "https://ntfy.sh/josefu_val_result_final_2026";
     let isRemoteUpdating = false;
 
-    function createAgentSelectHTML(id, defaultAgent) {
+    // URLに ?obs が含まれていれば管理パネルを完全に非表示化
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('obs')) {
+      const style = document.createElement('style');
+      style.innerHTML = '#admin-panel, #toggle-btn { display: none !important; }';
+      document.head.appendChild(style);
+    }
+
+    function createAgentSelect(id, defAgent) {
       let html = `<select id="agent-${id}" onchange="sendState()">`;
-      agents.forEach(group => {
-        html += `<optgroup label="${group.category}">`;
-        group.list.forEach(a => {
-          const sel = (a.id === defaultAgent) ? 'selected' : '';
-          html += `<option value="${a.id}" ${sel}>${a.name}</option>`;
+      agents.forEach(g => {
+        html += `<optgroup label="${g.category}">`;
+        g.list.forEach(a => {
+          html += `<option value="${a.id}" ${a.id === defAgent ? 'selected' : ''}>${a.name}</option>`;
         });
         html += `</optgroup>`;
       });
@@ -499,23 +464,20 @@
       ['blue', 'red'].forEach(side => {
         const ctrl = document.getElementById(`${side}-controls`);
         const membersCol = document.getElementById(`${side}-members-col`);
-        const titleColor = side === 'blue' ? '#00b4d8' : '#ff4655';
 
         for (let i = 1; i <= 5; i++) {
           const id = `${side}-${i}`;
           const defAgent = i === 1 ? (side === 'blue' ? 'jett' : 'omen') : (side === 'blue' ? 'sova' : 'neon');
-          const badgeText = i === 1 ? ' [👑 MVP 上段(KD/ACS/FK)]' : ` [メンバー ${i} (KD/ACS)]`;
+          const roleText = i === 1 ? '👑 MVP (KD/ACS/FK)' : `メンバー ${i} (KD/ACS)`;
 
           ctrl.innerHTML += `
             <div class="ctrl-row">
-              <span class="ctrl-label" style="color:${titleColor};">${side.toUpperCase()}${badgeText}</span>
-              <div class="ctrl-inputs">
-                ${createAgentSelectHTML(id, defAgent)}
-              </div>
-              <div class="ctrl-stats">
-                <div><div class="lbl-sm">KD</div><input type="text" id="kda-input-${id}" value="${i===1?'23 / 13':'5 / 16'}" oninput="sendState()"></div>
-                <div><div class="lbl-sm">ACS</div><input type="number" id="acs-input-${id}" value="${i===1?'340':'104'}" oninput="sendState()"></div>
-                ${i === 1 ? '<div><div class="lbl-sm">FK</div><input type="number" id="fk-input-' + id + '" value="5" oninput="sendState()"></div>' : '<div></div>'}
+              <span class="lbl-sm" style="font-weight:bold; color:${side==='blue'?'#00b4d8':'#ff4655'}">${side.toUpperCase()} ${roleText}</span>
+              ${createAgentSelect(id, defAgent)}
+              <div class="ctrl-grid">
+                <div><div class="lbl-sm">KD</div><input type="text" id="kda-${id}" value="${i===1?'23 / 13':'5 / 16'}" oninput="sendState()"></div>
+                <div><div class="lbl-sm">ACS</div><input type="number" id="acs-${id}" value="${i===1?'340':'104'}" oninput="sendState()"></div>
+                <div><div class="lbl-sm">FK ${i===1?'(MVP)':'(-)'}</div><input type="number" id="fk-${id}" value="${i===1?'5':'0'}" ${i>1?'disabled':''} oninput="sendState()"></div>
               </div>
             </div>`;
 
@@ -523,20 +485,14 @@
             membersCol.innerHTML += `
               <div class="member-row">
                 <img id="img-${id}" class="member-avatar" src="images/${defAgent}.png" alt="agent">
-                <div class="member-stats-block">
-                  <div id="kda-${id}" class="member-val">5 / 16</div>
-                  <div id="acs-${id}" class="member-val">104</div>
+                <div class="member-stats">
+                  <div id="val-kda-${id}" class="stat-val-member">5 / 16</div>
+                  <div id="val-acs-${id}" class="stat-val-member">104</div>
                 </div>
               </div>`;
           }
         }
       });
-
-      if (window.location.search.includes('obs')) {
-        const style = document.createElement('style');
-        style.innerHTML = '#admin-panel, #toggle-btn { display: none !important; }';
-        document.head.appendChild(style);
-      }
 
       listenForUpdates();
     }
@@ -549,45 +505,41 @@
         document.getElementById('map-select').value = data.map;
         document.getElementById('map-display-img').src = `images/${data.map}.png`;
       }
-
       if (data.teams) {
         if (data.teams.blue) {
           document.getElementById('team-blue-name').value = data.teams.blue.name;
           document.getElementById('name-blue-display').innerText = data.teams.blue.name;
           document.getElementById('team-blue-logo').value = data.teams.blue.logo || '';
-          const logoContainer = document.getElementById('team-logo-container');
+          const lBox = document.getElementById('team-logo-container');
           if (data.teams.blue.logo) {
-            logoContainer.style.display = 'flex';
+            lBox.style.display = 'flex';
             document.getElementById('team-logo-display').src = data.teams.blue.logo;
-          } else {
-            logoContainer.style.display = 'none';
-          }
+          } else { lBox.style.display = 'none'; }
         }
         if (data.teams.red) {
           document.getElementById('team-red-name').value = data.teams.red.name;
           document.getElementById('name-red-display').innerText = data.teams.red.name;
         }
       }
-
       if (data.players) {
         Object.keys(data.players).forEach(id => {
           const p = data.players[id];
           document.getElementById(`agent-${id}`).value = p.agent;
-          document.getElementById(`kda-input-${id}`).value = p.kda;
-          document.getElementById(`acs-input-${id}`).value = p.acs;
-          if (document.getElementById(`fk-input-${id}`)) {
-            document.getElementById(`fk-input-${id}`).value = p.fk;
-          }
+          document.getElementById(`kda-${id}`).value = p.kda;
+          document.getElementById(`acs-${id}`).value = p.acs;
+          if (document.getElementById(`fk-${id}`)) document.getElementById(`fk-${id}`).value = p.fk;
 
           document.getElementById(`img-${id}`).src = `images/${p.agent}.png`;
-          document.getElementById(`kda-${id}`).innerText = p.kda;
-          document.getElementById(`acs-${id}`).innerText = p.acs;
           if (id.endsWith('-1')) {
+            document.getElementById(`kda-${id}`).innerText = p.kda;
+            document.getElementById(`acs-${id}`).innerText = p.acs;
             document.getElementById(`fk-${id}`).innerText = p.fk;
+          } else {
+            document.getElementById(`val-kda-${id}`).innerText = p.kda;
+            document.getElementById(`val-acs-${id}`).innerText = p.acs;
           }
         });
       }
-
       setTimeout(() => { isRemoteUpdating = false; }, 200);
     }
 
@@ -605,29 +557,30 @@
       document.getElementById('name-blue-display').innerText = blueName;
       document.getElementById('name-red-display').innerText = redName;
 
-      const logoContainer = document.getElementById('team-logo-container');
+      const lBox = document.getElementById('team-logo-container');
       if (blueLogo) {
-        logoContainer.style.display = 'flex';
+        lBox.style.display = 'flex';
         document.getElementById('team-logo-display').src = blueLogo;
-      } else {
-        logoContainer.style.display = 'none';
-      }
+      } else { lBox.style.display = 'none'; }
 
       const playersPayload = {};
       for (let i = 1; i <= 5; i++) {
         ['blue', 'red'].forEach(side => {
           const id = `${side}-${i}`;
           const agent = document.getElementById(`agent-${id}`).value;
-          const kda = document.getElementById(`kda-input-${id}`).value;
-          const acs = document.getElementById(`acs-input-${id}`).value;
-          const fkInput = document.getElementById(`fk-input-${id}`);
-          const fk = fkInput ? fkInput.value : '0';
+          const kda = document.getElementById(`kda-${id}`).value;
+          const acs = document.getElementById(`acs-${id}`).value;
+          const fkEl = document.getElementById(`fk-${id}`);
+          const fk = fkEl ? fkEl.value : '0';
 
           document.getElementById(`img-${id}`).src = `images/${agent}.png`;
-          document.getElementById(`kda-${id}`).innerText = kda;
-          document.getElementById(`acs-${id}`).innerText = acs;
           if (i === 1) {
+            document.getElementById(`kda-${id}`).innerText = kda;
+            document.getElementById(`acs-${id}`).innerText = acs;
             document.getElementById(`fk-${id}`).innerText = fk;
+          } else {
+            document.getElementById(`val-kda-${id}`).innerText = kda;
+            document.getElementById(`val-acs-${id}`).innerText = acs;
           }
 
           playersPayload[id] = { agent, kda, acs, fk };
@@ -638,10 +591,7 @@
       sendTimer = setTimeout(() => {
         const data = {
           map: mapVal,
-          teams: {
-            blue: { name: blueName, logo: blueLogo },
-            red: { name: redName }
-          },
+          teams: { blue: { name: blueName, logo: blueLogo }, red: { name: redName } },
           players: playersPayload
         };
         fetch(TOPIC_URL, { method: 'POST', body: JSON.stringify(data) }).catch(err => console.error(err));
