@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>VALORANT Result Overlay</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: 'Arial', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      overflow: hidden;
+      width: 1920px;
+      height: 1080px;
+    }
+
+    #toggle-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 10000;
+      background: #ff4655;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    #admin-panel {
+      position: fixed;
+      top: 45px;
+      left: 10px;
+      z-index: 9999;
+      background: rgba(15, 25, 35, 0.96);
+      border: 2px solid #ff4655;
+      padding: 15px;
+      border-radius: 8px;
+      color: white;
+      max-height: 88vh;
+      overflow-y: auto;
+      width: 400px;
+      font-family: sans-serif;
+    }
+
+    .panel-hidden { display: none !important; }
+
+    .team-title {
+      font-size: 13px;
+      font-weight: bold;
+      padding: 6px 8px;
+      margin: 12px 0 6px 0;
+      border-radius: 4px;
+    }
+    .blue-team-title { background: #00b4d8; color: white; }
+    .map-title { background: #ffb142; color: #111; }
+    .red-team-title { background: #ff4655; color: white; }
+    .sheet-title { background: #2ecc71; color: #111; }
+
+    .team-info-box {
+      background: rgba(255,255,255,0.08);
+      padding: 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .player-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 6px;
+      background: rgba(255,255,255,0.05);
+      padding: 6px;
+      border-radius: 4px;
+    }
+
+    .player-row-inputs { display: flex; gap: 5px; }
+    .player-stat-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr 1.2fr; gap: 4px; }
+    .player-label { font-size: 11px; font-weight: bold; }
+
+    input[type="text"], input[type="number"], select {
+      padding: 5px 6px;
+      border-radius: 4px;
+      border: 1px solid #364966;
+      background: #111c24;
+      color: white;
+      font-size: 12px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .input-label-sm {
+      font-size: 10px;
+      color: #aaa;
+      margin-top: -2px;
+      margin-bottom: 2px;
+    }
+
+    .btn-action {
+      background: #2ecc71;
+      color: #111;
+      font-weight: bold;
+      border: none;
+      padding: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .btn-control {
+      flex: 1;
+      padding: 8px;
+      font-weight: bold;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .btn-char { background: #3498db; color: white; }
+    .btn-reset { background: #e74c3c; color: white; }
+
+    /* =========================================
+       RESULT OVERLAY CANVAS (1920x1080)
+       ========================================= */
+    #overlay-container {
+      width: 1920px;
+      height: 1080px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result-wrapper {
+      width: 1640px;
+      background: rgba(15, 25, 35, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+      overflow: hidden;
+    }
+
+    /* 上部ヘッダー（チーム名・ロゴ・スコア・マップ） */
+    .result-header {
+      height: 150px;
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 340px 1fr;
+      align-items: center;
+      background: linear-gradient(90deg, rgba(0, 180, 216, 0.25) 0%, rgba(15, 25, 35, 0.95) 50%, rgba(255, 70, 85, 0.25) 100%);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+      overflow: hidden;
+    }
+
+    .header-map-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.22;
+      z-index: 0;
+    }
+
+    .header-team {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      padding: 0 36px;
+      gap: 20px;
+    }
+
+    .header-team.blue {
+      justify-content: flex-start;
+      border-left: 8px solid #00b4d8;
+      height: 100%;
+    }
+
+    .header-team.red {
+      justify-content: flex-end;
+      border-right: 8px solid #ff4655;
+      height: 100%;
+    }
+
+    .team-logo-img {
+      height: 76px;
+      width: 76px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.8));
+    }
+
+    .team-name-block {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-team.red .team-name-block {
+      align-items: flex-end;
+    }
+
+    .team-banner-name {
+      color: #ffffff;
+      font-size: 36px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
+      white-space: nowrap;
+    }
+
+    .win-badge {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 3px 10px;
+      border-radius: 2px;
+      margin-top: 6px;
+      display: inline-block;
+    }
+    .win-badge.winner {
+      background: #17e5b4;
+      color: #0f1923;
+    }
+    .win-badge.loser {
+      background: rgba(255, 255, 255, 0.12);
+      color: #aaa;
+    }
+
+    .team-round-score {
+      font-size: 72px;
+      font-weight: 900;
+      color: #ffffff;
+      margin-left: auto;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.8);
+    }
+
+    .header-team.red .team-round-score {
+      margin-left: 0;
+      margin-right: auto;
+    }
+
+    /* 中央インフォ（Game表記・マップ名・前後半内訳） */
+    .header-center {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #ffffff;
+    }
+
+    .center-game-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #ff4655;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .center-map-name {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      margin: 2px 0 6px 0;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
+    }
+
+    .center-half-scores {
+      font-size: 13px;
+      color: #cfd8dc;
+      background: rgba(0, 0, 0, 0.55);
+      padding: 4px 12px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+
+    /* スコアボード本体（左右2カラム） */
+    .scoreboard-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .team-column.blue {
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .table-header {
+      display: grid;
+      grid-template-columns: 74px 1fr 70px 140px 80px;
+      align-items: center;
+      height: 40px;
+      padding: 0 20px;
+      background: rgba(0, 0, 0, 0.45);
+      color: #8b978f;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .table-header .col-player {
+      text-align: left;
+      padding-left: 12px;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: 74px 1fr 70px 140px 80px;
+      align-items: center;
+      height: 82px;
+      padding: 0 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      color: #ffffff;
+      text-align: center;
+    }
+
+    .team-column.blue .stat-row:nth-child(even) {
+      background: rgba(0, 180, 216, 0.06);
+    }
+    .team-column.red .stat-row:nth-child(even) {
+      background: rgba(255, 70, 85, 0.06);
+    }
+
+    .agent-thumb {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      object-position: top center;
+      border-radius: 4px;
+      background: #1a2634;
+    }
+
+    .team-column.blue .agent-thumb { border-left: 4px solid #00b4d8; }
+    .team-column.red .agent-thumb { border-left: 4px solid #ff4655; }
+
+    .stat-player-name {
+      text-align: left;
+      padding-left: 12px;
+      font-size: 20px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stat-acs {
+      font-size: 20px;
+      font-weight: 800;
+      color: #ece8e1;
+    }
+
+    .stat-kda {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .stat-kd-diff {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .diff-plus { color: #17e5b4; }
+    .diff-minus { color: #ff4655; }
+    .diff-zero { color: #9ea7b3; }
+  </style>
+</head>
+<body>
+
+  <button id="toggle-btn" onclick="togglePanel()">⚙️ リザルト管理 開閉</button>
+
+  <div id="admin-panel">
+    <h3 style="margin: 0 0 10px 0; color: #ff4655; font-size: 15px;">試合リザルトオーバーレイ管理</h3>
+
+    <div class="btn-group">
+      <button class="btn-control btn-char" onclick="resetStatsOnly()">スコアのみ初期化</button>
+      <button class="btn-control btn-reset" onclick="resetAllState()">全リセット</button>
+    </div>
+
+    <div class="team-title sheet-title">📊 Googleスプレッドシート連携</div>
+    <div class="team-info-box">
+      <input type="text" id="sheet-id-input" placeholder="スプレッドシートIDを入力" oninput="sendState()">
+      <button class="btn-action" onclick="fetchSheetData()">データ読み込み</button>
+    </div>
+
+    <div class="team-title map-title">MATCH SCORE & MAP</div>
+    <div class="team-info-box">
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="game-title-input" value="Game1 - RESULT" oninput="sendState()" placeholder="表記 (例: Game1 - RESULT)">
+        <select id="map-select" onchange="sendState()"></select>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1.4fr; gap:6px;">
+        <div>
+          <div class="input-label-sm">BLUEスコア</div>
+          <input type="number" id="blue-score-input" value="13" oninput="sendState()">
+        </div>
+        <div>
+          <div class="input-label-sm">REDスコア</div>
+          <input type="number" id="red-score-input" value="9" oninput="sendState()">
+        </div>
+        <div>
+          <div class="input-label-sm">前半/後半メモ</div>
+          <input type="text" id="half-score-input" value="1st 7-5 / 2nd 6-4" oninput="sendState()">
+        </div>
+      </div>
+    </div>
+
+    <div class="team-title blue-team-title">BLUE TEAM (左側)</div>
+    <div class="team-info-box">
+      <select id="select-team-blue-preset" onchange="applyTeamPreset('blue')">
+        <option value="">-- シートからチームを選択 --</option>
+      </select>
+      <input type="text" id="team-blue-name-input" value="SETOUCHI SPARKS" oninput="sendState()" placeholder="チーム名">
+      <input type="text" id="team-blue-logo-input" value="" oninput="sendState()" placeholder="ロゴURL または =IMAGE(...)">
+    </div>
+    <div id="blue-controls"></div>
+
+    <div class="team-title red-team-title">RED TEAM (右側)</div>
+    <div class="team-info-box">
+      <select id="select-team-red-preset" onchange="applyTeamPreset('red')">
+        <option value="">-- シートからチームを選択 --</option>
+      </select>
+      <input type="text" id="team-red-name-input" value="AXELIA A" oninput="sendState()" placeholder="チーム名">
+      <input type="text" id="team-red-logo-input" value="" oninput="sendState()" placeholder="ロゴURL または =IMAGE(...)">
+    </div>
+    <div id="red-controls"></div>
+  </div>
+
+  <!-- リザルト表示本体 (1920x1080 中央配置) -->
+  <div id="overlay-container">
+    <div class="result-wrapper">
+      <div class="result-header">
+        <img id="map-img-display" class="header-map-bg" src="images/sunset.png" alt="map">
+
+        <!-- BLUE TEAM HEADER -->
+        <div class="header-team blue">
+          <img id="team-blue-logo-img" class="team-logo-img" src="" style="display:none;" onerror="this.style.display='none';">
+          <div class="team-name-block">
+            <div id="team-blue-name" class="team-banner-name">SETOUCHI SPARKS</div>
+            <span id="blue-win-badge" class="win-badge winner">WINNER</span>
+          </div>
+          <div id="blue-score-display" class="team-round-score">13</div>
+        </div>
+
+        <!-- CENTER INFO -->
+        <div class="header-center">
+          <div id="game-title-display" class="center-game-title">Game1 - RESULT</div>
+          <div id="map-name-display" class="center-map-name">SUNSET</div>
+          <div id="half-score-display" class="center-half-scores">1st 7-5 / 2nd 6-4</div>
+        </div>
+
+        <!-- RED TEAM HEADER -->
+        <div class="header-team red">
+          <div id="red-score-display" class="team-round-score">9</div>
+          <div class="team-name-block">
+            <div id="team-red-name" class="team-banner-name">AXELIA A</div>
+            <span id="red-win-badge" class="win-badge loser">DEFEAT</span>
+          </div>
+          <img id="team-red-logo-img" class="team-logo-img" src="" style="display:none;" onerror="this.style.display='none';">
+        </div>
+      </div>
+
+      <!-- SCOREBOARD -->
+      <div class="scoreboard-body">
+        <div class="team-column blue">
+          <div class="table-header">
+            <div>AGENT</div>
+            <div class="col-player">PLAYER</div>
+            <div>ACS</div>
+            <div>K / D / A</div>
+            <div>+/-</div>
+          </div>
+          <div id="blue-rows"></div>
+        </div>
+
+        <div class="team-column red">
+          <div class="table-header">
+            <div>AGENT</div>
+            <div class="col-player">PLAYER</div>
+            <div>ACS</div>
+            <div>K / D / A</div>
+            <div>+/-</div>
+          </div>
+          <div id="red-rows"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const maps = [
+      { id: "ascent", name: "アセント (Ascent)" },
+      { id: "haven", name: "ヘイブン (Haven)" },
+      { id: "sunset", name: "サンセット (Sunset)" },
+      { id: "breeze", name: "ブリーズ (Breeze)" },
+      { id: "split", name: "スプリット (Split)" },
+      { id: "lotus", name: "ロータス (Lotus)" },
+      { id: "summit", name: "サミット (Summit)" }
+    ];
+
+    const agents = [
+      { category: "デュエリスト", list: [
+        { id: "jett", name: "ジェット" }, { id: "phoenix", name: "フェニックス" },
+        { id: "reyna", name: "レイナ" }, { id: "raze", name: "レイズ" },
+        { id: "yoru", name: "ヨル" }, { id: "neon", name: "ネオン" },
+        { id: "iso", name: "アイソ" }, { id: "waylay", name: "ウェイレイ" },
+        { id: "hash", name: "ハッシュ" }
+      ]},
+      { category: "イニシエーター", list: [
+        { id: "sova", name: "ソーヴァ" }, { id: "breach", name: "ブリーチ" },
+        { id: "skye", name: "スカイ" }, { id: "kayo", name: "KAY/O" },
+        { id: "fade", name: "フェイド" }, { id: "gekko", name: "ゲッコー" },
+        { id: "tejo", name: "テホ" }
+      ]},
+      { category: "コントローラー", list: [
+        { id: "brimstone", name: "ブリムストーン" }, { id: "omen", name: "オーメン" },
+        { id: "viper", name: "ヴァイパー" }, { id: "astra", name: "アストラ" },
+        { id: "harbor", name: "ハーバー" }, { id: "clove", name: "クローヴ" },
+        { id: "miks", name: "ミクス" }
+      ]},
+      { category: "センチネル", list: [
+        { id: "sage", name: "セージ" }, { id: "cypher", name: "サイファー" },
+        { id: "killjoy", name: "キルジョイ" }, { id: "chamber", name: "チェンバー" },
+        { id: "deadlock", name: "デッドロック" }, { id: "vyse", name: "ヴァイス" },
+        { id: "veto", name: "ヴィトー" }
+      ]}
+    ];
+
+    // ピック画面と競合しないようリザルト専用トピックに設定
+    const TOPIC_URL = "https://ntfy.sh/josefu_val_overlay_2026_secret_result";
+    let loadedTeamsData = [];
+    let isRemoteUpdating = false;
+
+    function setSafeImage(url, imgElement) {
+      if (!url) {
+        imgElement.style.display = 'none';
+        return;
+      }
+      let val = String(url).trim();
+
+      const matchImageFunc = val.match(/=IMAGE\s*\(\s*["']([^"']+)["']\s*\)/i);
+      if (matchImageFunc && matchImageFunc[1]) {
+        val = matchImageFunc[1];
+      }
+
+      if (val.includes("drive.google.com") || val.includes("googleusercontent.com")) {
+        let fileId = "";
+        const matchId = val.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (matchId && matchId[1]) {
+          fileId = matchId[1];
+        } else {
+          const matchParam = val.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+          if (matchParam && matchParam[1]) {
+            fileId = matchParam[1];
+          }
+        }
+        if (fileId) {
+          val = `https://lh3.googleusercontent.com/d/${fileId}`;
+        }
+      }
+
+      if (!val.startsWith("http://") && !val.startsWith("https://")) {
+        const cleaned = val.toLowerCase().replace(/\s+/g, '');
+        imgElement.src = cleaned.endsWith('.png') ? `images/${cleaned}` : `images/${cleaned}.png`;
+        imgElement.style.display = 'block';
+        return;
+      }
+
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = function() {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          imgElement.src = canvas.toDataURL("image/png");
+          imgElement.style.display = 'block';
+        } catch (e) {
+          imgElement.src = val;
+          imgElement.style.display = 'block';
+        }
+      };
+      img.onerror = function() {
+        imgElement.src = val;
+        imgElement.style.display = 'block';
+      };
+      img.src = val + (val.includes("?") ? "&" : "?") + "t=" + new Date().getTime();
+    }
+
+    function createAgentSelectHTML(id) {
+      let html = `<select id="select-agent-${id}" onchange="sendState()">`;
+      agents.forEach(group => {
+        html += `<optgroup label="${group.category}">`;
+        group.list.forEach(a => {
+          html += `<option value="${a.id}">${a.name}</option>`;
+        });
+        html += `</optgroup>`;
+      });
+      html += `</select>`;
+      return html;
+    }
+
+    function initMapSelect() {
+      const mapSelect = document.getElementById('map-select');
+      let html = '';
+      maps.forEach(m => {
+        html += `<option value="${m.id}">${m.name}</option>`;
+      });
+      mapSelect.innerHTML = html;
+      mapSelect.value = "sunset";
+    }
+
+    function init() {
+      initMapSelect();
+
+      ['blue', 'red'].forEach(side => {
+        const ctrl = document.getElementById(`${side}-controls`);
+        const rowsContainer = document.getElementById(`${side}-rows`);
+        const labelColor = side === 'blue' ? '#00b4d8' : '#ff4655';
+
+        for (let i = 1; i <= 5; i++) {
+          const id = `${side}-${i}`;
+          const defaultName = `Player ${i}`;
+
+          ctrl.innerHTML += `
+            <div class="player-row">
+              <span class="player-label" style="color:${labelColor};">${side.toUpperCase()} Player ${i}</span>
+              <div class="player-row-inputs">
+                <select id="select-player-${id}" onchange="sendState()">
+                  <option value="${defaultName}">${defaultName}</option>
+                </select>
+                ${createAgentSelectHTML(id)}
+              </div>
+              <div class="player-stat-inputs">
+                <input type="number" id="input-acs-${id}" value="200" placeholder="ACS" title="ACS" oninput="sendState()">
+                <input type="number" id="input-k-${id}" value="15" placeholder="K" title="Kills" oninput="sendState()">
+                <input type="number" id="input-d-${id}" value="15" placeholder="D" title="Deaths" oninput="sendState()">
+                <input type="number" id="input-a-${id}" value="5" placeholder="A" title="Assists" oninput="sendState()">
+              </div>
+            </div>`;
+
+          rowsContainer.innerHTML += `
+            <div class="stat-row">
+              <img id="img-${id}" class="agent-thumb" src="images/jett.png" alt="agent">
+              <div id="name-${id}" class="stat-player-name">${defaultName}</div>
+              <div id="acs-${id}" class="stat-acs">200</div>
+              <div id="kda-${id}" class="stat-kda">15 / 15 / 5</div>
+              <div id="diff-${id}" class="stat-kd-diff diff-zero">0</div>
+            </div>`;
+        }
+      });
+
+      if (window.location.search.includes('obs')) {
+        const style = document.createElement('style');
+        style.innerHTML = '#admin-panel, #toggle-btn { display: none !important; }';
+        document.head.appendChild(style);
+      }
+
+      updateWinBadges();
+      listenForUpdates();
+    }
+
+    function updateWinBadges() {
+      const blueScore = parseInt(document.getElementById('blue-score-input').value, 10) || 0;
+      const redScore = parseInt(document.getElementById('red-score-input').value, 10) || 0;
+
+      document.getElementById('blue-score-display').innerText = blueScore;
+      document.getElementById('red-score-display').innerText = redScore;
+
+      const blueBadge = document.getElementById('blue-win-badge');
+      const redBadge = document.getElementById('red-win-badge');
+
+      if (blueScore > redScore) {
+        blueBadge.innerText = "WINNER";
+        blueBadge.className = "win-badge winner";
+        redBadge.innerText = "DEFEAT";
+        redBadge.className = "win-badge loser";
+      } else if (redScore > blueScore) {
+        redBadge.innerText = "WINNER";
+        redBadge.className = "win-badge winner";
+        blueBadge.innerText = "DEFEAT";
+        blueBadge.className = "win-badge loser";
+      } else {
+        blueBadge.innerText = "DRAW";
+        blueBadge.className = "win-badge loser";
+        redBadge.innerText = "DRAW";
+        redBadge.className = "win-badge loser";
+      }
+    }
+
+    function updatePlayerStatDOM(id, k, d, a, acs) {
+      document.getElementById(`acs-${id}`).innerText = acs;
+      document.getElementById(`kda-${id}`).innerText = `${k} / ${d} / ${a}`;
+      const diff = (parseInt(k, 10) || 0) - (parseInt(d, 10) || 0);
+      const diffEl = document.getElementById(`diff-${id}`);
+      if (diff > 0) {
+        diffEl.innerText = `+${diff}`;
+        diffEl.className = "stat-kd-diff diff-plus";
+      } else if (diff < 0) {
+        diffEl.innerText = `${diff}`;
+        diffEl.className = "stat-kd-diff diff-minus";
+      } else {
+        diffEl.innerText = "0";
+        diffEl.className = "stat-kd-diff diff-zero";
+      }
+    }
+
+    function fetchSheetData() {
+      const sheetId = document.getElementById('sheet-id-input').value.trim();
+      if (!sheetId) {
+        alert("スプレッドシートIDを入力してください");
+        return;
+      }
+
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+
+      fetch(url)
+        .then(res => res.text())
+        .then(text => {
+          const json = JSON.parse(text.substr(47).slice(0, -2));
+          const rows = json.table.rows;
+          loadedTeamsData = [];
+
+          rows.forEach(row => {
+            if (!row.c || !row.c[0]) return;
+            const teamName = (row.c[0] && row.c[0].v) ? String(row.c[0].v).trim() : "";
+            const teamShort = (row.c[1] && row.c[1].v) ? String(row.c[1].v).trim() : "";
+
+            let teamLogo = "";
+            if (row.c[2]) {
+              const rawLogo = row.c[2].v !== undefined ? row.c[2].v : (row.c[2].f !== undefined ? row.c[2].f : "");
+              const strLogo = String(rawLogo).trim();
+              const matchImg = strLogo.match(/=IMAGE\s*\(\s*["']([^"']+)["']\s*\)/i);
+              teamLogo = (matchImg && matchImg[1]) ? matchImg[1] : strLogo;
+            }
+
+            const players = [];
+            for (let col = 3; col < row.c.length; col++) {
+              if (row.c[col] && row.c[col].v) {
+                players.push(row.c[col].v);
+              }
+            }
+
+            if (teamName) {
+              loadedTeamsData.push({ teamName, teamShort, teamLogo, players });
+            }
+          });
+
+          updateTeamDropdowns();
+          sendState();
+          alert(`${loadedTeamsData.length} 件のチーム情報を読み込みました！`);
+        })
+        .catch(err => {
+          console.error(err);
+          alert("データの取得に失敗しました。スプレッドシートのアクセス権を確認してください。");
+        });
+    }
+
+    function updateTeamDropdowns() {
+      ['blue', 'red'].forEach(side => {
+        const select = document.getElementById(`select-team-${side}-preset`);
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">-- シートからチームを選択 --</option>';
+        loadedTeamsData.forEach((t, idx) => {
+          select.innerHTML += `<option value="${idx}">${t.teamName}</option>`;
+        });
+        select.value = currentVal;
+      });
+    }
+
+    function applyTeamPreset(side) {
+      const select = document.getElementById(`select-team-${side}-preset`);
+      const idx = select.value;
+      if (idx === "") return;
+
+      const team = loadedTeamsData[idx];
+      document.getElementById(`team-${side}-name-input`).value = team.teamName;
+      document.getElementById(`team-${side}-logo-input`).value = team.teamLogo;
+
+      for (let i = 1; i <= 5; i++) {
+        const playerSelect = document.getElementById(`select-player-${side}-${i}`);
+        if (playerSelect) {
+          let optionsHtml = '';
+          team.players.forEach(p => {
+            optionsHtml += `<option value="${p}">${p}</option>`;
+          });
+          playerSelect.innerHTML = optionsHtml;
+          if (team.players[i - 1]) {
+            playerSelect.value = team.players[i - 1];
+          }
+        }
+      }
+      sendState();
+    }
+
+    function resetStatsOnly() {
+      document.getElementById('blue-score-input').value = 0;
+      document.getElementById('red-score-input').value = 0;
+      document.getElementById('half-score-input').value = "1st 0-0 / 2nd 0-0";
+      for (let i = 1; i <= 5; i++) {
+        ['blue', 'red'].forEach(team => {
+          const id = `${team}-${i}`;
+          document.getElementById(`input-acs-${id}`).value = 0;
+          document.getElementById(`input-k-${id}`).value = 0;
+          document.getElementById(`input-d-${id}`).value = 0;
+          document.getElementById(`input-a-${id}`).value = 0;
+        });
+      }
+      sendState();
+    }
+
+    function resetAllState() {
+      document.getElementById('sheet-id-input').value = "";
+      document.getElementById('game-title-input').value = "Game1 - RESULT";
+      document.getElementById('map-select').value = "sunset";
+      document.getElementById('blue-score-input').value = 13;
+      document.getElementById('red-score-input').value = 9;
+      document.getElementById('half-score-input').value = "1st 7-5 / 2nd 6-4";
+
+      document.getElementById('team-blue-name-input').value = "SETOUCHI SPARKS";
+      document.getElementById('team-blue-logo-input').value = "";
+      document.getElementById('team-red-name-input').value = "AXELIA A";
+      document.getElementById('team-red-logo-input').value = "";
+
+      loadedTeamsData = [];
+      updateTeamDropdowns();
+
+      for (let i = 1; i <= 5; i++) {
+        ['blue', 'red'].forEach(team => {
+          const id = `${team}-${i}`;
+          const defaultName = `Player ${i}`;
+          const playerSelect = document.getElementById(`select-player-${id}`);
+          playerSelect.innerHTML = `<option value="${defaultName}">${defaultName}</option>`;
+          playerSelect.value = defaultName;
+          document.getElementById(`select-agent-${id}`).value = "jett";
+          document.getElementById(`input-acs-${id}`).value = 200;
+          document.getElementById(`input-k-${id}`).value = 15;
+          document.getElementById(`input-d-${id}`).value = 15;
+          document.getElementById(`input-a-${id}`).value = 5;
+        });
+      }
+      sendState();
+    }
+
+    function renderUI(data) {
+      if (!data) return;
+      isRemoteUpdating = true;
+
+      if (data.sheetId !== undefined) document.getElementById('sheet-id-input').value = data.sheetId;
+      if (data.loadedTeamsData) {
+        loadedTeamsData = data.loadedTeamsData;
+        updateTeamDropdowns();
+      }
+      if (data.selectedPresets) {
+        if (data.selectedPresets.blue !== undefined) document.getElementById('select-team-blue-preset').value = data.selectedPresets.blue;
+        if (data.selectedPresets.red !== undefined) document.getElementById('select-team-red-preset').value = data.selectedPresets.red;
+      }
+      if (data.gameTitle !== undefined) {
+        document.getElementById('game-title-input').value = data.gameTitle;
+        document.getElementById('game-title-display').innerText = data.gameTitle;
+      }
+      if (data.halfScore !== undefined) {
+        document.getElementById('half-score-input').value = data.halfScore;
+        document.getElementById('half-score-display').innerText = data.halfScore;
+      }
+      if (data.scores) {
+        document.getElementById('blue-score-input').value = data.scores.blue;
+        document.getElementById('red-score-input').value = data.scores.red;
+        updateWinBadges();
+      }
+
+      if (data.teams) {
+        if (data.teams.blue) {
+          document.getElementById('team-blue-name-input').value = data.teams.blue.name;
+          document.getElementById('team-blue-logo-input').value = data.teams.blue.logo || "";
+          document.getElementById('team-blue-name').innerText = data.teams.blue.name;
+          setSafeImage(data.teams.blue.logo, document.getElementById('team-blue-logo-img'));
+        }
+        if (data.teams.red) {
+          document.getElementById('team-red-name-input').value = data.teams.red.name;
+          document.getElementById('team-red-logo-input').value = data.teams.red.logo || "";
+          document.getElementById('team-red-name').innerText = data.teams.red.name;
+          setSafeImage(data.teams.red.logo, document.getElementById('team-red-logo-img'));
+        }
+      }
+
+      if (data.map) {
+        document.getElementById('map-select').value = data.map;
+        document.getElementById('map-img-display').src = `images/${data.map}.png`;
+        document.getElementById('map-name-display').innerText = data.map.toUpperCase();
+      }
+
+      if (data.players) {
+        Object.keys(data.players).forEach(id => {
+          const p = data.players[id];
+          const pSelect = document.getElementById(`select-player-${id}`);
+          if (pSelect) {
+            if (!Array.from(pSelect.options).some(opt => opt.value === p.name)) {
+              pSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+            }
+            pSelect.value = p.name;
+            document.getElementById(`select-agent-${id}`).value = p.agent;
+            document.getElementById(`name-${id}`).innerText = p.name;
+            document.getElementById(`img-${id}`).src = `images/${p.agent}.png`;
+
+            document.getElementById(`input-acs-${id}`).value = p.acs ?? 0;
+            document.getElementById(`input-k-${id}`).value = p.k ?? 0;
+            document.getElementById(`input-d-${id}`).value = p.d ?? 0;
+            document.getElementById(`input-a-${id}`).value = p.a ?? 0;
+            updatePlayerStatDOM(id, p.k ?? 0, p.d ?? 0, p.a ?? 0, p.acs ?? 0);
+          }
+        });
+      }
+
+      setTimeout(() => { isRemoteUpdating = false; }, 200);
+    }
+
+    let sendTimer = null;
+    function sendState() {
+      if (isRemoteUpdating) return;
+
+      const sheetId = document.getElementById('sheet-id-input').value;
+      const gameTitle = document.getElementById('game-title-input').value;
+      const halfScore = document.getElementById('half-score-input').value;
+      document.getElementById('game-title-display').innerText = gameTitle;
+      document.getElementById('half-score-display').innerText = halfScore;
+
+      updateWinBadges();
+
+      const blueName = document.getElementById('team-blue-name-input').value;
+      const blueLogo = document.getElementById('team-blue-logo-input').value;
+      const redName = document.getElementById('team-red-name-input').value;
+      const redLogo = document.getElementById('team-red-logo-input').value;
+
+      document.getElementById('team-blue-name').innerText = blueName;
+      document.getElementById('team-red-name').innerText = redName;
+      setSafeImage(blueLogo, document.getElementById('team-blue-logo-img'));
+      setSafeImage(redLogo, document.getElementById('team-red-logo-img'));
+
+      const mapVal = document.getElementById('map-select').value;
+      document.getElementById('map-img-display').src = `images/${mapVal}.png`;
+      document.getElementById('map-name-display').innerText = mapVal.toUpperCase();
+
+      const playersPayload = {};
+      for (let i = 1; i <= 5; i++) {
+        ['blue', 'red'].forEach(team => {
+          const id = `${team}-${i}`;
+          const name = document.getElementById(`select-player-${id}`).value;
+          const agent = document.getElementById(`select-agent-${id}`).value;
+          const acs = document.getElementById(`input-acs-${id}`).value;
+          const k = document.getElementById(`input-k-${id}`).value;
+          const d = document.getElementById(`input-d-${id}`).value;
+          const a = document.getElementById(`input-a-${id}`).value;
+
+          document.getElementById(`name-${id}`).innerText = name;
+          document.getElementById(`img-${id}`).src = `images/${agent}.png`;
+          updatePlayerStatDOM(id, k, d, a, acs);
+
+          playersPayload[id] = { name, agent, acs, k, d, a };
+        });
+      }
+
+      clearTimeout(sendTimer);
+      sendTimer = setTimeout(() => {
+        const data = {
+          sheetId,
+          loadedTeamsData,
+          selectedPresets: {
+            blue: document.getElementById('select-team-blue-preset').value,
+            red: document.getElementById('select-team-red-preset').value
+          },
+          gameTitle,
+          halfScore,
+          scores: {
+            blue: document.getElementById('blue-score-input').value,
+            red: document.getElementById('red-score-input').value
+          },
+          teams: {
+            blue: { name: blueName, logo: blueLogo },
+            red: { name: redName, logo: redLogo }
+          },
+          map: mapVal,
+          players: playersPayload
+        };
+
+        fetch(TOPIC_URL, {
+          method: 'POST',
+          body: JSON.stringify(data)
+        }).catch(err => console.error("送信エラー:", err));
+      }, 100);
+    }
+
+    function listenForUpdates() {
+      const eventSource = new EventSource(TOPIC_URL + "/sse");
+      eventSource.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message && message.message) {
+            const data = JSON.parse(message.message);
+            renderUI(data);
+          }
+        } catch (e) {}
+      };
+    }
+
+    function togglePanel() {
+      document.getElementById('admin-panel').classList.toggle('panel-hidden');
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
