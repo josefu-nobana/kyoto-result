@@ -30,19 +30,21 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.6);
     }
 
+    /* 管理パネル本体：スクロールしやすく改善 */
     #admin-panel {
       position: fixed;
       top: 65px;
       left: 15px;
       z-index: 9999;
-      background: rgba(15, 25, 35, 0.96);
+      background: rgba(15, 25, 35, 0.98);
       border: 2px solid #ff4655;
       padding: 16px;
       border-radius: 8px;
       color: white;
-      max-height: 85vh;
-      overflow-y: auto;
+      height: 85vh;
+      overflow-y: scroll;
       width: 440px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     }
 
     .panel-hidden { display: none !important; }
@@ -50,8 +52,8 @@
     .sec-title {
       font-size: 12px;
       font-weight: bold;
-      padding: 5px 8px;
-      margin: 10px 0 6px 0;
+      padding: 6px 10px;
+      margin: 12px 0 6px 0;
       border-radius: 4px;
     }
     .t-blue { background: #00b4d8; color: #fff; }
@@ -75,13 +77,14 @@
       background: rgba(255,255,255,0.04);
       padding: 6px;
       border-radius: 4px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+      border-left: 3px solid rgba(255,255,255,0.2);
     }
     .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
     .lbl-sm { font-size: 10px; color: #aaa; }
 
     input, select {
-      padding: 5px;
+      padding: 6px;
       border-radius: 4px;
       border: 1px solid #364966;
       background: #111c24;
@@ -448,7 +451,7 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_local_storage_key_v4";
+    const STORAGE_KEY = "val_result_local_storage_key_v5";
     let isRemoteUpdating = false;
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -518,8 +521,8 @@
                 <div class="member-row">
                   <img id="img-${id}" class="member-avatar" src="images/${defAgent}.png" alt="agent" onerror="this.src='images/jett.png';">
                   <div class="member-stats">
-                    <div id="kda-${id}" class="stat-val-member">5 / 16</div>
-                    <div id="acs-${id}" class="stat-val-member">104</div>
+                    <div id="kda-disp-${id}" class="stat-val-member">5 / 16</div>
+                    <div id="acs-disp-${id}" class="stat-val-member">104</div>
                   </div>
                 </div>`;
             }
@@ -589,11 +592,12 @@
             const imgEl = document.getElementById(`img-${id}`);
             if (imgEl) imgEl.src = `images/${p.agent}.png`;
             
-            const kdaDisp = document.getElementById(`kda-${id}`);
-            if (kdaDisp && !isMvp && kdaDisp.tagName === 'DIV') kdaDisp.innerText = p.kda;
-            
-            const acsDisp = document.getElementById(`acs-${id}`);
-            if (acsDisp && !isMvp && acsDisp.tagName === 'DIV') acsDisp.innerText = p.acs;
+            if (!isMvp) {
+              const kdaDisp = document.getElementById(`kda-disp-${id}`);
+              if (kdaDisp) kdaDisp.innerText = p.kda;
+              const acsDisp = document.getElementById(`acs-disp-${id}`);
+              if (acsDisp) acsDisp.innerText = p.acs;
+            }
           });
         }
       } catch (err) {
@@ -638,8 +642,10 @@
 
             document.getElementById(`img-${id}`).src = `images/${agent}.png`;
             if (i > 1) {
-              // 下段メンバーの表示を更新
-              // DOM構造上、kda-${id} はinput要素またはdiv要素になりうるため安全に処理
+              const kdaDisp = document.getElementById(`kda-disp-${id}`);
+              if (kdaDisp) kdaDisp.innerText = kda;
+              const acsDisp = document.getElementById(`acs-disp-${id}`);
+              if (acsDisp) acsDisp.innerText = acs;
             }
 
             playersPayload[id] = { agent, kda, acs, fk };
