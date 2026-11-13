@@ -119,190 +119,187 @@
     }
 
     .screen-wrap {
-      width: 1720px;
-      height: 940px;
-      background: rgba(12, 18, 26, 0.94);
-      border: 2px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 30px 70px rgba(0,0,0,0.95);
+      width: 1660px;
+      height: 920px;
+      background: transparent;
       display: flex;
       flex-direction: column;
       position: relative;
-      overflow: hidden;
     }
 
     /* 1. 最上部チーム名ヘッダー */
     .teams-header {
-      height: 90px;
+      height: 110px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      background: rgba(8, 12, 18, 0.9);
-      border-bottom: 2px solid rgba(255,255,255,0.15);
-      z-index: 2;
+      align-items: center;
     }
     .team-title {
       display: flex;
       align-items: center;
-      padding: 0 50px;
-      font-size: 38px;
+      justify-content: center;
+      font-size: 50px;
       font-weight: 900;
-      color: #fff;
-      text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
+      color: #ffffff;
+      letter-spacing: 2px;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.95);
     }
-    .team-title.blue { justify-content: flex-start; border-left: 8px solid #00b4d8; }
-    .team-title.red { justify-content: flex-end; border-right: 8px solid #ff4655; }
 
-    /* 2. 中央指標ラベル（縦並び・中央寄せ） */
-    .center-metrics {
+    /* 2. 中央指標ラベル（MVP用） */
+    .mvp-center-labels {
       position: absolute;
       left: 50%;
-      top: 130px;
+      top: 220px;
       transform: translateX(-50%);
-      width: 200px;
+      width: 220px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;
+      gap: 22px;
       z-index: 5;
-      text-align: center;
     }
-    .metric-item {
-      font-size: 13px;
+    .metric-label {
+      font-size: 16px;
       font-weight: 900;
-      color: #9ea7b3;
+      color: #ffffff;
       letter-spacing: 2px;
-      text-transform: uppercase;
-      background: rgba(15, 22, 30, 0.95);
-      padding: 3px 16px;
-      border-radius: 3px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.95);
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    /* 3. MVPセクション（上段：1人目・3項目縦並び） */
+    /* 3. MVPセクション（上段：左右1人ずつ） */
     .mvp-section {
-      height: 220px;
+      height: 290px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      border-bottom: 2px solid rgba(255,255,255,0.12);
-      background: rgba(10, 15, 22, 0.6);
-      z-index: 2;
+      align-items: center;
     }
     .mvp-card {
       display: flex;
       align-items: center;
-      padding: 0 40px;
+      height: 100%;
       position: relative;
     }
-    .mvp-card.blue { justify-content: flex-start; }
-    .mvp-card.red { justify-content: flex-end; flex-direction: row-reverse; }
-
-    .mvp-avatar {
-      width: 150px;
-      height: 190px;
-      position: relative;
-      border-radius: 4px;
-      overflow: hidden;
-      background: #16222c;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-    }
-    .mvp-card.blue .mvp-avatar { border-left: 5px solid #00b4d8; }
-    .mvp-card.red .mvp-avatar { border-right: 5px solid #ff4655; }
-    .mvp-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+    .mvp-card.blue { justify-content: flex-end; padding-right: 120px; }
+    .mvp-card.red { justify-content: flex-start; padding-left: 120px; flex-direction: row-reverse; }
 
     .mvp-badge {
       position: absolute;
-      top: 8px;
-      background: #7b2cbf;
-      color: #fff;
-      font-size: 11px;
+      top: 20px;
+      background: rgba(120, 90, 160, 0.8);
+      color: #ffffff;
+      font-size: 16px;
       font-weight: 900;
-      padding: 2px 10px;
-      border-radius: 2px;
-      letter-spacing: 1px;
+      padding: 4px 22px;
+      letter-spacing: 2px;
     }
-    .mvp-card.blue .mvp-badge { left: 8px; }
-    .mvp-card.red .mvp-badge { right: 8px; }
+    .mvp-card.blue .mvp-badge { left: 20px; }
+    .mvp-card.red .mvp-badge { right: 20px; }
+
+    .mvp-avatar {
+      width: 220px;
+      height: 270px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .mvp-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: bottom center;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.85));
+    }
 
     .mvp-stats {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin: 0 35px;
+      gap: 22px;
+      margin: 0 32px;
     }
-    .mvp-card.blue .mvp-stats { align-items: flex-start; }
-    .mvp-card.red .mvp-stats { align-items: flex-end; text-align: right; }
+    .mvp-card.blue .mvp-stats { align-items: flex-end; text-align: right; }
+    .mvp-card.red .mvp-stats { align-items: flex-start; text-align: left; }
 
     .stat-val-mvp {
-      font-size: 26px;
+      font-size: 34px;
       font-weight: 900;
-      color: #fff;
+      color: #ffffff;
       height: 32px;
       display: flex;
       align-items: center;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
+      text-shadow: 0 3px 10px rgba(0,0,0,0.95);
     }
 
-    /* 4. 通常メンバーセクション（下段：2〜5人目・2項目縦並び） */
-    .members-section {
+    /* 4. 下段エリア（通常メンバー4行 ＋ 左マップ ＋ 右ロゴ） */
+    .bottom-section {
       flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      background: rgba(10, 15, 22, 0.4);
-      z-index: 2;
-    }
-    .members-col {
+      position: relative;
       display: flex;
       flex-direction: column;
       justify-content: space-around;
-      padding: 12px 40px;
+      padding: 10px 50px 20px 50px;
     }
-    .members-col.blue { border-right: 1px solid rgba(255,255,255,0.08); }
 
-    .member-row {
-      display: flex;
+    .member-versus-row {
+      display: grid;
+      grid-template-columns: 1fr 140px 1fr;
       align-items: center;
-      height: 64px;
+      height: 78px;
       background: rgba(255,255,255,0.03);
-      padding: 0 12px;
       border-radius: 4px;
-      gap: 40px;
+      padding: 0 20px;
     }
-    .members-col.blue .member-row { justify-content: flex-start; }
-    .members-col.red .member-row { justify-content: flex-end; flex-direction: row-reverse; }
+
+    .m-side-blue { display: flex; align-items: center; justify-content: space-between; padding-right: 40px; }
+    .m-side-red { display: flex; align-items: center; justify-content: space-between; flex-direction: row-reverse; padding-left: 40px; }
 
     .member-avatar {
-      width: 52px;
-      height: 52px;
+      width: 60px;
+      height: 60px;
       object-fit: cover;
       object-position: top center;
-      border-radius: 4px;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.85));
       background: #16222c;
+      border-radius: 4px;
     }
-    .members-col.blue .member-avatar { border-left: 3px solid #00b4d8; }
-    .members-col.red .member-avatar { border-right: 3px solid #ff4655; }
 
-    .member-stats {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .members-col.blue .member-stats { align-items: flex-start; }
-    .members-col.red .member-stats { align-items: flex-end; text-align: right; }
+    .member-stats { display: flex; flex-direction: column; gap: 4px; }
+    .m-side-blue .member-stats { align-items: flex-end; text-align: right; }
+    .m-side-red .member-stats { align-items: flex-start; text-align: left; }
 
     .stat-val-member {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 900;
-      color: #fff;
-      height: 22px;
-      display: flex;
-      align-items: center;
+      color: #ffffff;
+      line-height: 1.1;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.95);
     }
 
-    /* 5. 左下のマップ表示ウィンドウ */
+    .member-center-labels {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .m-lbl {
+      font-size: 13px;
+      font-weight: 900;
+      color: #9ea7b3;
+      letter-spacing: 1px;
+    }
+
+    /* 左下のマップウィンドウ（メンバーリストと重ならない位置に独立配置） */
     .map-box {
       position: absolute;
-      left: 40px;
-      bottom: 25px;
-      width: 300px;
-      height: 170px;
+      left: 50px;
+      bottom: 20px;
+      width: 240px;
+      height: 135px;
       background: #0f1620;
       border: 2px solid rgba(255,255,255,0.2);
       border-radius: 6px;
@@ -310,25 +307,27 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.8);
       z-index: 10;
     }
-    .map-box img { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
+    .map-box img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* 6. 右下のチームロゴ枠 */
+    /* 右下のチームロゴ */
     .logo-box {
       position: absolute;
-      right: 40px;
-      bottom: 25px;
-      width: 150px;
-      height: 150px;
-      background: #0d233a;
-      border: 2px solid #00b4d8;
-      border-radius: 6px;
+      right: 50px;
+      bottom: 20px;
+      width: 140px;
+      height: 135px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+      overflow: hidden;
       z-index: 10;
     }
-    .logo-box img { max-width: 90%; max-height: 90%; object-fit: contain; }
+    .logo-box img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 20px rgba(0,0,0,0.85));
+    }
   </style>
 </head>
 <body>
@@ -336,33 +335,33 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (ローカル)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
-    <div class="sec-title t-map">🗺️ マップ選択</div>
+    <div class="sec-title t-map">🗺️ マップ選択 (images/ 内のファイル名)</div>
     <div class="ctrl-box">
       <select id="map-select" onchange="sendState()">
-        <option value="ascent">Ascent (アセント)</option>
-        <option value="haven">Haven (ヘイブン)</option>
-        <option value="sunset">Sunset (サンセット)</option>
-        <option value="breeze">Breeze (ブリーズ)</option>
-        <option value="split">Split (スプリット)</option>
-        <option value="lotus">Lotus (ロータス)</option>
-        <option value="bind">Bind (バインド)</option>
-        <option value="icebox">Icebox (アイスボックス)</option>
+        <option value="ascent">ascent</option>
+        <option value="haven">haven</option>
+        <option value="sunset">sunset</option>
+        <option value="breeze">breeze</option>
+        <option value="split">split</option>
+        <option value="lotus">lotus</option>
+        <option value="bind">bind</option>
+        <option value="icebox">icebox</option>
       </select>
     </div>
 
     <div class="sec-title t-blue">BLUE TEAM (左側)</div>
     <div class="ctrl-box">
-      <input type="text" id="team-blue-name" value="東京TECH B" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-blue-logo" value="" oninput="sendState()" placeholder="右下チームロゴURL">
+      <input type="text" id="team-blue-name" value="東京TECH B" oninput="sendState()" placeholder="左チーム名">
     </div>
     <div id="blue-controls"></div>
 
     <div class="sec-title t-red">RED TEAM (右側)</div>
     <div class="ctrl-box">
-      <input type="text" id="team-red-name" value="名古屋TECH B" oninput="sendState()" placeholder="チーム名">
+      <input type="text" id="team-red-name" value="名古屋TECH B" oninput="sendState()" placeholder="右チーム名">
+      <input type="text" id="team-red-logo" value="" oninput="sendState()" placeholder="右下チームロゴ画像 (例: logo.png)">
     </div>
     <div id="red-controls"></div>
   </div>
@@ -370,76 +369,68 @@
   <!-- オーバーレイ画面本体 -->
   <div id="overlay-container">
     <div class="screen-wrap">
-      <!-- チーム名ヘッダー -->
+      <!-- 1. チーム名ヘッダー -->
       <div class="teams-header">
-        <div id="name-blue-display" class="team-title blue">東京TECH B</div>
-        <div id="name-red-display" class="team-title red">名古屋TECH B</div>
+        <div id="disp-team-blue" class="team-title">東京TECH B</div>
+        <div id="disp-team-red" class="team-title">名古屋TECH B</div>
       </div>
 
-      <!-- 中央ラベル（縦並び） -->
-      <div class="center-metrics">
-        <div class="metric-item">KD</div>
-        <div class="metric-item">ACS</div>
-        <div class="metric-item">FIRST KILLS</div>
+      <!-- 2. 中央ラベル（MVP用） -->
+      <div class="mvp-center-labels">
+        <div class="metric-label">KD</div>
+        <div class="metric-label">ACS</div>
+        <div class="metric-label">FIRST KILLS</div>
       </div>
 
-      <!-- MVPセクション (1人目：KD, ACS, FK) -->
+      <!-- 3. MVPセクション (1人目) -->
       <div class="mvp-section">
         <div class="mvp-card blue">
+          <div class="mvp-badge">MVP</div>
           <div class="mvp-avatar">
-            <div class="mvp-badge">MVP</div>
-            <img id="img-blue-1" src="images/jett.png" alt="agent">
+            <img id="disp-img-blue-1" src="images/jett.png" alt="agent" onerror="this.src='images/agent.png';">
           </div>
           <div class="mvp-stats">
-            <div id="kda-blue-1" class="stat-val-mvp">23 / 13</div>
-            <div id="acs-blue-1" class="stat-val-mvp">340</div>
-            <div id="fk-blue-1" class="stat-val-mvp">5</div>
+            <div id="disp-kda-blue-1" class="stat-val-mvp">23 / 13</div>
+            <div id="disp-acs-blue-1" class="stat-val-mvp">340</div>
+            <div id="disp-fk-blue-1" class="stat-val-mvp">5</div>
           </div>
         </div>
 
         <div class="mvp-card red">
+          <div class="mvp-badge">MVP</div>
           <div class="mvp-avatar">
-            <div class="mvp-badge">MVP</div>
-            <img id="img-red-1" src="images/omen.png" alt="agent">
+            <img id="disp-img-red-1" src="images/omen.png" alt="agent" onerror="this.src='images/agent.png';">
           </div>
           <div class="mvp-stats">
-            <div id="kda-red-1" class="stat-val-mvp">20 / 9</div>
-            <div id="acs-red-1" class="stat-val-mvp">261</div>
-            <div id="fk-red-1" class="stat-val-mvp">1</div>
+            <div id="disp-kda-red-1" class="stat-val-mvp">20 / 9</div>
+            <div id="disp-acs-red-1" class="stat-val-mvp">261</div>
+            <div id="disp-fk-red-1" class="stat-val-mvp">1</div>
           </div>
         </div>
       </div>
 
-      <!-- 通常メンバーセクション (2〜5人目：KD, ACS) -->
-      <div class="members-section">
-        <div id="blue-members-col" class="members-col blue"></div>
-        <div id="red-members-col" class="members-col red"></div>
-      </div>
+      <!-- 4. 下段エリア（通常メンバー4行 ＋ 左マップ ＋ 右ロゴ） -->
+      <div class="bottom-section">
+        <div id="members-versus-list"></div>
 
-      <!-- 左下のマップ -->
-      <div class="map-box">
-        <img id="map-display-img" src="images/ascent.png" alt="map" onerror="this.src='images/sunset.png';">
-      </div>
+        <!-- 左下マップ -->
+        <div class="map-box">
+          <img id="disp-map-img" src="images/sunset.png" alt="map" onerror="this.src='images/sunset.png';">
+        </div>
 
-      <!-- 右下のチームロゴ -->
-      <div id="team-logo-container" class="logo-box" style="display:none;">
-        <img id="team-logo-display" src="" alt="logo" onerror="this.parentElement.style.display='none';">
+        <!-- 右下チームロゴ -->
+        <div class="logo-box">
+          <img id="disp-logo-img" src="" alt="" style="display:none;" onerror="this.style.display='none';">
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    const agents = [
-      { category: "デュエリスト", list: [{id:"jett",name:"ジェット"},{id:"phoenix",name:"フェニックス"},{id:"reyna",name:"レイナ"},{id:"raze",name:"レイズ"},{id:"yoru",name:"ヨル"},{id:"neon",name:"ネオン"},{id:"iso",name:"アイソ"},{id:"waylay",name:"ウェイレイ"},{id:"hash",name:"ハッシュ"}]},
-      { category: "イニシエーター", list: [{id:"sova",name:"ソーヴァ"},{id:"breach",name:"ブリーチ"},{id:"skye",name:"スカイ"},{id:"kayo",name:"KAY/O"},{id:"fade",name:"フェイド"},{id:"gekko",name:"ゲッコー"},{id:"tejo",name:"テホ"}]},
-      { category: "コントローラー", list: [{id:"brimstone",name:"ブリムストーン"},{id:"omen",name:"オーメン"},{id:"viper",name:"ヴァイパー"},{id:"astra",name:"アストラ"},{id:"harbor",name:"ハーバー"},{id:"clove",name:"クローヴ"},{id:"miks",name:"ミクス"}]},
-      { category: "センチネル", list: [{id:"sage",name:"セージ"},{id:"cypher",name:"サイファー"},{id:"killjoy",name:"キルジョイ"},{id:"chamber",name:"チェンバー"},{id:"deadlock",name:"デッドロック"},{id:"vyse",name:"ヴァイス"},{id:"veto",name:"ヴィトー"}]}
-    ];
+    const AGENTS = ["jett", "omen", "sova", "viper", "phoenix", "neon", "chamber", "reyna", "raze", "yoru", "iso", "breach", "skye", "kayo", "fade", "gekko", "brimstone", "astra", "harbor", "sage", "cypher", "killjoy", "deadlock"];
 
-    const TOPIC_URL = "https://ntfy.sh/josefu_val_result_final_2026";
-    let isRemoteUpdating = false;
+    const STORAGE_KEY = "val_result_local_data_v2";
 
-    // URLに ?obs が含まれていれば管理パネルを完全に非表示化
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('obs')) {
       const style = document.createElement('style');
@@ -448,171 +439,202 @@
     }
 
     function createAgentSelect(id, defAgent) {
-      let html = `<select id="agent-${id}" onchange="sendState()">`;
-      agents.forEach(g => {
-        html += `<optgroup label="${g.category}">`;
-        g.list.forEach(a => {
-          html += `<option value="${a.id}" ${a.id === defAgent ? 'selected' : ''}>${a.name}</option>`;
-        });
-        html += `</optgroup>`;
+      let html = `<select id="in-agent-${id}" onchange="sendState()">`;
+      AGENTS.forEach(ag => {
+        html += `<option value="${ag}" ${ag === defAgent ? 'selected' : ''}>${ag}</option>`;
       });
       html += `</select>`;
       return html;
     }
 
     function init() {
+      const defaults = {
+        blue: [
+          { agent: 'jett', kda: '23 / 13', acs: '340', fk: '5' },
+          { agent: 'sova', kda: '5 / 16', acs: '104', fk: '0' },
+          { agent: 'viper', kda: '10 / 18', acs: '159', fk: '0' },
+          { agent: 'omen', kda: '9 / 13', acs: '131', fk: '0' },
+          { agent: 'phoenix', kda: '5 / 16', acs: '104', fk: '0' }
+        ],
+        red: [
+          { agent: 'omen', kda: '20 / 9', acs: '261', fk: '1' },
+          { agent: 'neon', kda: '16 / 14', acs: '256', fk: '0' },
+          { agent: 'phoenix', kda: '15 / 13', acs: '230', fk: '0' },
+          { agent: 'sova', kda: '14 / 12', acs: '207', fk: '0' },
+          { agent: 'chamber', kda: '12 / 11', acs: '172', fk: '0' }
+        ]
+      };
+
       ['blue', 'red'].forEach(side => {
         const ctrl = document.getElementById(`${side}-controls`);
-        const membersCol = document.getElementById(`${side}-members-col`);
-
         for (let i = 1; i <= 5; i++) {
           const id = `${side}-${i}`;
-          const defAgent = i === 1 ? (side === 'blue' ? 'jett' : 'omen') : (side === 'blue' ? 'sova' : 'neon');
+          const d = defaults[side][i - 1];
           const roleText = i === 1 ? '👑 MVP (KD/ACS/FK)' : `メンバー ${i} (KD/ACS)`;
 
           ctrl.innerHTML += `
             <div class="ctrl-row">
               <span class="lbl-sm" style="font-weight:bold; color:${side==='blue'?'#00b4d8':'#ff4655'}">${side.toUpperCase()} ${roleText}</span>
-              ${createAgentSelect(id, defAgent)}
+              ${createAgentSelect(id, d.agent)}
               <div class="ctrl-grid">
-                <div><div class="lbl-sm">KD</div><input type="text" id="kda-${id}" value="${i===1?'23 / 13':'5 / 16'}" oninput="sendState()"></div>
-                <div><div class="lbl-sm">ACS</div><input type="number" id="acs-${id}" value="${i===1?'340':'104'}" oninput="sendState()"></div>
-                <div><div class="lbl-sm">FK ${i===1?'(MVP)':'(-)'}</div><input type="number" id="fk-${id}" value="${i===1?'5':'0'}" ${i>1?'disabled':''} oninput="sendState()"></div>
+                <div><div class="lbl-sm">KD</div><input type="text" id="in-kda-${id}" value="${d.kda}" oninput="sendState()"></div>
+                <div><div class="lbl-sm">ACS</div><input type="number" id="in-acs-${id}" value="${d.acs}" oninput="sendState()"></div>
+                <div><div class="lbl-sm">FK ${i===1?'(MVP)':'(-)'}</div><input type="number" id="in-fk-${id}" value="${d.fk}" ${i>1?'disabled':''} oninput="sendState()"></div>
               </div>
             </div>`;
-
-          if (i > 1) {
-            membersCol.innerHTML += `
-              <div class="member-row">
-                <img id="img-${id}" class="member-avatar" src="images/${defAgent}.png" alt="agent">
-                <div class="member-stats">
-                  <div id="val-kda-${id}" class="stat-val-member">5 / 16</div>
-                  <div id="val-acs-${id}" class="stat-val-member">104</div>
-                </div>
-              </div>`;
-          }
         }
       });
 
-      listenForUpdates();
+      // 下段4人対戦リスト（2〜5人目）生成
+      const versusList = document.getElementById('members-versus-list');
+      for (let i = 2; i <= 5; i++) {
+        const b = defaults.blue[i - 1];
+        const r = defaults.red[i - 1];
+        versusList.innerHTML += `
+          <div class="member-versus-row">
+            <div class="m-side-blue">
+              <img id="disp-img-blue-${i}" class="member-avatar" src="images/${b.agent}.png" alt="agent" onerror="this.src='images/agent.png';">
+              <div class="member-stats">
+                <div id="disp-kda-blue-${i}" class="stat-val-member">${b.kda}</div>
+                <div id="disp-acs-blue-${i}" class="stat-val-member">${b.acs}</div>
+              </div>
+            </div>
+
+            <div class="member-center-labels">
+              <div class="m-lbl">KD</div>
+              <div class="m-lbl">ACS</div>
+            </div>
+
+            <div class="m-side-red">
+              <img id="disp-img-red-${i}" class="member-avatar" src="images/${r.agent}.png" alt="agent" onerror="this.src='images/agent.png';">
+              <div class="member-stats">
+                <div id="disp-kda-red-${i}" class="stat-val-member">${r.kda}</div>
+                <div id="disp-acs-red-${i}" class="stat-val-member">${r.acs}</div>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      loadState();
     }
 
     function renderUI(data) {
       if (!data) return;
-      isRemoteUpdating = true;
 
       if (data.map) {
         document.getElementById('map-select').value = data.map;
-        document.getElementById('map-display-img').src = `images/${data.map}.png`;
+        document.getElementById('disp-map-img').src = `images/${data.map}.png`;
       }
       if (data.teams) {
         if (data.teams.blue) {
           document.getElementById('team-blue-name').value = data.teams.blue.name;
-          document.getElementById('name-blue-display').innerText = data.teams.blue.name;
-          document.getElementById('team-blue-logo').value = data.teams.blue.logo || '';
-          const lBox = document.getElementById('team-logo-container');
-          if (data.teams.blue.logo) {
-            lBox.style.display = 'flex';
-            document.getElementById('team-logo-display').src = data.teams.blue.logo;
-          } else { lBox.style.display = 'none'; }
+          document.getElementById('disp-team-blue').innerText = data.teams.blue.name;
         }
         if (data.teams.red) {
           document.getElementById('team-red-name').value = data.teams.red.name;
-          document.getElementById('name-red-display').innerText = data.teams.red.name;
+          document.getElementById('disp-team-red').innerText = data.teams.red.name;
+          document.getElementById('team-red-logo').value = data.teams.red.logo || '';
+          const logoImg = document.getElementById('disp-logo-img');
+          if (data.teams.red.logo) {
+            logoImg.src = data.teams.red.logo;
+            logoImg.style.display = 'block';
+          } else {
+            logoImg.style.display = 'none';
+          }
         }
       }
       if (data.players) {
         Object.keys(data.players).forEach(id => {
           const p = data.players[id];
-          document.getElementById(`agent-${id}`).value = p.agent;
-          document.getElementById(`kda-${id}`).value = p.kda;
-          document.getElementById(`acs-${id}`).value = p.acs;
-          if (document.getElementById(`fk-${id}`)) document.getElementById(`fk-${id}`).value = p.fk;
+          const isMvp = id.endsWith('-1');
+          document.getElementById(`in-agent-${id}`).value = p.agent;
+          document.getElementById(`in-kda-${id}`).value = p.kda;
+          document.getElementById(`in-acs-${id}`).value = p.acs;
+          if (document.getElementById(`in-fk-${id}`)) document.getElementById(`in-fk-${id}`).value = p.fk;
 
-          document.getElementById(`img-${id}`).src = `images/${p.agent}.png`;
-          if (id.endsWith('-1')) {
-            document.getElementById(`kda-${id}`).innerText = p.kda;
-            document.getElementById(`acs-${id}`).innerText = p.acs;
-            document.getElementById(`fk-${id}`).innerText = p.fk;
-          } else {
-            document.getElementById(`val-kda-${id}`).innerText = p.kda;
-            document.getElementById(`val-acs-${id}`).innerText = p.acs;
+          document.getElementById(`disp-img-${id}`).src = `images/${p.agent}.png`;
+          document.getElementById(`disp-kda-${id}`).innerText = p.kda;
+          document.getElementById(`disp-acs-${id}`).innerText = p.acs;
+          if (isMvp) {
+            document.getElementById(`disp-fk-${id}`).innerText = p.fk;
           }
         });
       }
-      setTimeout(() => { isRemoteUpdating = false; }, 200);
     }
 
-    let sendTimer = null;
     function sendState() {
-      if (isRemoteUpdating) return;
-
       const mapVal = document.getElementById('map-select').value;
-      document.getElementById('map-display-img').src = `images/${mapVal}.png`;
+      document.getElementById('disp-map-img').src = `images/${mapVal}.png`;
 
       const blueName = document.getElementById('team-blue-name').value;
-      const blueLogo = document.getElementById('team-blue-logo').value;
       const redName = document.getElementById('team-red-name').value;
+      const redLogo = document.getElementById('team-red-logo').value;
 
-      document.getElementById('name-blue-display').innerText = blueName;
-      document.getElementById('name-red-display').innerText = redName;
+      document.getElementById('disp-team-blue').innerText = blueName;
+      document.getElementById('disp-team-red').innerText = redName;
 
-      const lBox = document.getElementById('team-logo-container');
-      if (blueLogo) {
-        lBox.style.display = 'flex';
-        document.getElementById('team-logo-display').src = blueLogo;
-      } else { lBox.style.display = 'none'; }
+      const logoImg = document.getElementById('disp-logo-img');
+      if (redLogo) {
+        logoImg.src = redLogo;
+        logoImg.style.display = 'block';
+      } else {
+        logoImg.style.display = 'none';
+      }
 
       const playersPayload = {};
       for (let i = 1; i <= 5; i++) {
         ['blue', 'red'].forEach(side => {
           const id = `${side}-${i}`;
-          const agent = document.getElementById(`agent-${id}`).value;
-          const kda = document.getElementById(`kda-${id}`).value;
-          const acs = document.getElementById(`acs-${id}`).value;
-          const fkEl = document.getElementById(`fk-${id}`);
+          const agent = document.getElementById(`in-agent-${id}`).value;
+          const kda = document.getElementById(`in-kda-${id}`).value;
+          const acs = document.getElementById(`in-acs-${id}`).value;
+          const fkEl = document.getElementById(`in-fk-${id}`);
           const fk = fkEl ? fkEl.value : '0';
 
-          document.getElementById(`img-${id}`).src = `images/${agent}.png`;
+          document.getElementById(`disp-img-${id}`).src = `images/${agent}.png`;
+          document.getElementById(`disp-kda-${id}`).innerText = kda;
+          document.getElementById(`disp-acs-${id}`).innerText = acs;
           if (i === 1) {
-            document.getElementById(`kda-${id}`).innerText = kda;
-            document.getElementById(`acs-${id}`).innerText = acs;
-            document.getElementById(`fk-${id}`).innerText = fk;
-          } else {
-            document.getElementById(`val-kda-${id}`).innerText = kda;
-            document.getElementById(`val-acs-${id}`).innerText = acs;
+            document.getElementById(`disp-fk-${id}`).innerText = fk;
           }
 
           playersPayload[id] = { agent, kda, acs, fk };
         });
       }
 
-      clearTimeout(sendTimer);
-      sendTimer = setTimeout(() => {
-        const data = {
-          map: mapVal,
-          teams: { blue: { name: blueName, logo: blueLogo }, red: { name: redName } },
-          players: playersPayload
-        };
-        fetch(TOPIC_URL, { method: 'POST', body: JSON.stringify(data) }).catch(err => console.error(err));
-      }, 100);
+      const data = {
+        map: mapVal,
+        teams: {
+          blue: { name: blueName },
+          red: { name: redName, logo: redLogo }
+        },
+        players: playersPayload
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
 
-    function listenForUpdates() {
-      const eventSource = new EventSource(TOPIC_URL + "/sse");
-      eventSource.onmessage = (event) => {
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
         try {
-          const msg = JSON.parse(event.data);
-          if (msg && msg.message) renderUI(JSON.parse(msg.message));
+          renderUI(JSON.parse(saved));
         } catch (e) {}
-      };
+      }
     }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === STORAGE_KEY) {
+        loadState();
+      }
+    });
 
     function togglePanel() {
       document.getElementById('admin-panel').classList.toggle('panel-hidden');
     }
 
     function resetAllState() {
+      localStorage.removeItem(STORAGE_KEY);
       location.reload();
     }
 
