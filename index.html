@@ -301,7 +301,7 @@
       align-items: center;
     }
 
-    /* 5. 左下のマップ表示ウィンドウ（通常メンバーと完全に独立した絶対配置） */
+    /* 5. 左下のマップ表示ウィンドウ */
     .map-box {
       position: absolute;
       left: 30px;
@@ -347,14 +347,14 @@
     <div class="sec-title t-map">🗺️ マップ選択</div>
     <div class="ctrl-box">
       <select id="map-select" onchange="sendState()">
-        <option value="ascent">Ascent (アセント)</option>
-        <option value="haven">Haven (ヘイブン)</option>
-        <option value="sunset">Sunset (サンセット)</option>
-        <option value="breeze">Breeze (ブリーズ)</option>
-        <option value="split">Split (スプリット)</option>
-        <option value="lotus">Lotus (ロータス)</option>
-        <option value="bind">Bind (バインド)</option>
-        <option value="icebox">Icebox (アイスボックス)</option>
+        <option value="ascent">ascent</option>
+        <option value="haven">haven</option>
+        <option value="sunset">sunset</option>
+        <option value="breeze">breeze</option>
+        <option value="split">split</option>
+        <option value="lotus">lotus</option>
+        <option value="bind">bind</option>
+        <option value="icebox">icebox</option>
       </select>
     </div>
 
@@ -367,7 +367,7 @@
     <div class="sec-title t-red">RED TEAM (右側)</div>
     <div class="ctrl-box">
       <input type="text" id="team-red-name" value="名古屋TECH B" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-red-logo" value="" oninput="sendState()" placeholder="右下チームロゴURL または画像名">
+      <input type="text" id="team-red-logo" value="" oninput="sendState()" placeholder="右下チームロゴファイル名 (例: logo.png)">
     </div>
     <div id="red-controls"></div>
   </div>
@@ -393,7 +393,7 @@
         <div class="mvp-card blue">
           <div class="mvp-avatar">
             <div class="mvp-badge">MVP</div>
-            <img id="img-blue-1" src="images/jett.png" alt="agent">
+            <img id="img-blue-1" src="images/jett.png" alt="agent" onerror="this.src='images/jett.png';">
           </div>
           <div class="mvp-stats">
             <div id="kda-blue-1" class="stat-val-mvp">23 / 13</div>
@@ -405,7 +405,7 @@
         <div class="mvp-card red">
           <div class="mvp-avatar">
             <div class="mvp-badge">MVP</div>
-            <img id="img-red-1" src="images/omen.png" alt="agent">
+            <img id="img-red-1" src="images/omen.png" alt="agent" onerror="this.src='images/omen.png';">
           </div>
           <div class="mvp-stats">
             <div id="kda-red-1" class="stat-val-mvp">20 / 9</div>
@@ -421,9 +421,9 @@
         <div id="red-members-col" class="members-col red"></div>
       </div>
 
-      <!-- 左下のマップ（リストとは完全独立の絶対配置） -->
+      <!-- 左下のマップ -->
       <div class="map-box">
-        <img id="map-img-display" src="images/sunset.png" alt="map">
+        <img id="map-img-display" src="images/sunset.png" alt="map" onerror="this.src='images/sunset.png';">
       </div>
 
       <!-- 右下のチームロゴ -->
@@ -462,7 +462,7 @@
       ]}
     ];
 
-    const TOPIC_URL = "https://ntfy.sh/josefu_val_result_fixed_2026";
+    const STORAGE_KEY = "val_result_local_storage_key_v3";
     let isRemoteUpdating = false;
 
     // URLに ?obs が含まれていれば管理パネルを完全に非表示化
@@ -473,21 +473,18 @@
       document.head.appendChild(style);
     }
 
-    // 画像パスを安全に解決する関数（ベースコード譲り）
     function setSafeImage(url, imgElement) {
       if (!url) {
         imgElement.style.display = 'none';
         return;
       }
       let val = String(url).trim();
-
       if (!val.startsWith("http://") && !val.startsWith("https://")) {
         const cleaned = val.toLowerCase().replace(/\s+/g, '');
         imgElement.src = cleaned.endsWith('.png') ? `images/${cleaned}` : `images/${cleaned}.png`;
         imgElement.style.display = 'block';
         return;
       }
-
       imgElement.src = val;
       imgElement.style.display = 'block';
     }
@@ -541,7 +538,15 @@
         }
       });
 
-      listenForUpdates();
+      // ローカルストレージから前回の状態を読み込む
+      loadState();
+      
+      // 他のタブ（管理画面）での変更をリアルタイム検知
+      window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_KEY) {
+          loadState();
+        }
+      });
     }
 
     function renderUI(data) {
@@ -550,7 +555,7 @@
 
       if (data.map) {
         document.getElementById('map-select').value = data.map;
-        setSafeImage(data.map, document.getElementById('map-img-display'));
+        document.getElementById('map-img-display').src = `images/${data.map}.png`;
       }
       if (data.teams) {
         if (data.teams.blue) {
@@ -579,7 +584,7 @@
           document.getElementById(`acs-${id}`).value = p.acs;
           if (document.getElementById(`fk-${id}`)) document.getElementById(`fk-${id}`).value = p.fk;
 
-          setSafeImage(p.agent, document.getElementById(`img-${id}`));
+          document.getElementById(`img-${id}`).src = `images/${p.agent}.png`;
           document.getElementById(`kda-${id}`).innerText = p.kda;
           document.getElementById(`acs-${id}`).innerText = p.acs;
           if (isMvp) {
@@ -587,15 +592,14 @@
           }
         });
       }
-      setTimeout(() => { isRemoteUpdating = false; }, 200);
+      setTimeout(() => { isRemoteUpdating = false; }, 100);
     }
 
-    let sendTimer = null;
     function sendState() {
       if (isRemoteUpdating) return;
 
       const mapVal = document.getElementById('map-select').value;
-      setSafeImage(mapVal, document.getElementById('map-img-display'));
+      document.getElementById('map-img-display').src = `images/${mapVal}.png`;
 
       const blueName = document.getElementById('team-blue-name').value;
       const redName = document.getElementById('team-red-name').value;
@@ -622,7 +626,7 @@
           const fkEl = document.getElementById(`fk-${id}`);
           const fk = fkEl ? fkEl.value : '0';
 
-          setSafeImage(agent, document.getElementById(`img-${id}`));
+          document.getElementById(`img-${id}`).src = `images/${agent}.png`;
           document.getElementById(`kda-${id}`).innerText = kda;
           document.getElementById(`acs-${id}`).innerText = acs;
           if (i === 1) {
@@ -633,25 +637,23 @@
         });
       }
 
-      clearTimeout(sendTimer);
-      sendTimer = setTimeout(() => {
-        const data = {
-          map: mapVal,
-          teams: { blue: { name: blueName }, red: { name: redName, logo: redLogo } },
-          players: playersPayload
-        };
-        fetch(TOPIC_URL, { method: 'POST', body: JSON.stringify(data) }).catch(err => console.error(err));
-      }, 100);
+      const data = {
+        map: mapVal,
+        teams: { blue: { name: blueName }, red: { name: redName, logo: redLogo } },
+        players: playersPayload
+      };
+
+      // ブラウザのローカルストレージに保存して同期
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
 
-    function listenForUpdates() {
-      const eventSource = new EventSource(TOPIC_URL + "/sse");
-      eventSource.onmessage = (event) => {
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
         try {
-          const msg = JSON.parse(event.data);
-          if (msg && msg.message) renderUI(JSON.parse(msg.message));
+          renderUI(JSON.parse(saved));
         } catch (e) {}
-      };
+      }
     }
 
     function togglePanel() {
@@ -659,6 +661,7 @@
     }
 
     function resetAllState() {
+      localStorage.removeItem(STORAGE_KEY);
       location.reload();
     }
 
