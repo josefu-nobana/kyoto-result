@@ -42,7 +42,7 @@
       color: white;
       max-height: 88vh;
       overflow-y: auto;
-      width: 420px;
+      width: 440px;
       font-family: sans-serif;
     }
 
@@ -52,25 +52,24 @@
       font-size: 13px;
       font-weight: bold;
       padding: 6px 8px;
-      margin: 12px 0 6px 0;
+      margin: 10px 0 6px 0;
       border-radius: 4px;
     }
     .blue-title { background: #00b4d8; color: white; }
     .red-title { background: #ff4655; color: white; }
-    .map-title { background: #ffb142; color: #111; }
     .sheet-title { background: #2ecc71; color: #111; }
 
     .info-box {
       background: rgba(255,255,255,0.08);
       padding: 8px;
       border-radius: 4px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
 
-    .player-ctrl-row {
+    .ctrl-row {
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -80,7 +79,7 @@
       border-radius: 4px;
     }
     .ctrl-inputs { display: flex; gap: 4px; }
-    .ctrl-stats { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
+    .ctrl-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
     .ctrl-label { font-size: 11px; font-weight: bold; }
 
     input[type="text"], input[type="number"], select {
@@ -95,21 +94,13 @@
     }
     .lbl-sm { font-size: 10px; color: #aaa; margin-bottom: 2px; }
 
-    .btn-action {
-      background: #2ecc71;
-      color: #111;
-      font-weight: bold;
-      border: none;
-      padding: 6px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .btn-group { display: flex; gap: 8px; margin-bottom: 12px; }
+    .btn-action { background: #2ecc71; color: #111; font-weight: bold; border: none; padding: 6px; border-radius: 4px; cursor: pointer; }
+    .btn-group { display: flex; gap: 8px; margin-bottom: 10px; }
     .btn-control { flex: 1; padding: 8px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
     .btn-reset { background: #e74c3c; color: white; }
 
     /* =========================================
-       OVERLAY CANVAS (1920x1080)
+       OVERLAY SCREEN (1920x1080) - 写真完全一致レイアウト
        ========================================= */
     #overlay-container {
       width: 1920px;
@@ -123,68 +114,86 @@
       align-items: center;
     }
 
-    .main-wrapper {
-      width: 1720px;
-      height: 920px;
-      background: rgba(15, 25, 35, 0.88);
+    .screen-wrapper {
+      width: 1680px;
+      height: 940px;
+      background: #0f131a;
       border: 2px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.95);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
       position: relative;
+      overflow: hidden;
     }
 
-    /* 背景マップ画像 */
+    /* 背景のマップ透過画像 */
     .bg-map {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      opacity: 0.18;
+      opacity: 0.22;
       z-index: 0;
     }
 
-    /* 1. ヘルパーチーム名ヘッダー */
-    .teams-header {
+    /* 1. 最上部チーム名ヘッダー */
+    .team-headers {
       position: relative;
-      z-index: 1;
-      height: 100px;
+      z-index: 2;
+      height: 90px;
       display: grid;
       grid-template-columns: 1fr 1fr;
+      background: rgba(15, 20, 28, 0.75);
       border-bottom: 2px solid rgba(255,255,255,0.15);
-      background: rgba(10, 15, 22, 0.6);
     }
 
-    .team-name-box {
+    .team-title-box {
       display: flex;
       align-items: center;
-      padding: 0 40px;
-      gap: 20px;
+      padding: 0 50px;
+      font-size: 40px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 1px;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
     }
-    .team-name-box.blue {
-      justify-content: flex-start;
-      border-left: 8px solid #00b4d8;
+    .team-title-box.blue { justify-content: flex-start; border-left: 8px solid #00b4d8; }
+    .team-title-box.red { justify-content: flex-end; border-right: 8px solid #ff4655; }
+
+    /* 2. 中央指標ラベル（KD, ACS, FIRST KILLS） */
+    .center-metrics {
+      position: absolute;
+      left: 50%;
+      top: 140px;
+      transform: translateX(-50%);
+      width: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      z-index: 5;
     }
-    .team-name-box.red {
-      justify-content: flex-end;
-      border-right: 8px solid #ff4655;
-      flex-direction: row-reverse;
+    .metric-item {
+      font-size: 13px;
+      font-weight: 900;
+      color: #9ea7b3;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: rgba(15, 22, 30, 0.85);
+      padding: 2px 14px;
+      border-radius: 3px;
     }
 
-    .team-logo { width: 60px; height: 60px; object-fit: contain; }
-    .team-title-text { font-size: 38px; font-weight: 900; color: #fff; letter-spacing: 1px; text-shadow: 2px 2px 6px rgba(0,0,0,0.9); }
-
-    /* 2. MVPセクション（左右トッププレイヤー） */
+    /* 3. MVPセクション（上段：トッププレイヤー1人ずつ） */
     .mvp-section {
       position: relative;
-      z-index: 1;
-      height: 230px;
+      z-index: 2;
+      height: 220px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       border-bottom: 2px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.3);
+      background: rgba(10, 15, 22, 0.45);
     }
 
     .mvp-card {
@@ -196,21 +205,22 @@
     .mvp-card.blue { justify-content: flex-start; }
     .mvp-card.red { justify-content: flex-end; flex-direction: row-reverse; }
 
-    .mvp-avatar-wrap {
-      width: 160px;
-      height: 200px;
+    .mvp-avatar-box {
+      width: 150px;
+      height: 190px;
       position: relative;
       overflow: hidden;
-      border-radius: 6px;
+      border-radius: 4px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      background: #16222c;
     }
-    .mvp-card.blue .mvp-avatar-wrap { border-left: 5px solid #00b4d8; }
-    .mvp-card.red .mvp-avatar-wrap { border-right: 5px solid #ff4655; }
+    .mvp-card.blue .mvp-avatar-box { border-left: 5px solid #00b4d8; }
+    .mvp-card.red .mvp-avatar-box { border-right: 5px solid #ff4655; }
     .mvp-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
 
-    .mvp-badge {
+    .mvp-tag {
       position: absolute;
-      top: 10px;
+      top: 8px;
       background: #7b2cbf;
       color: #fff;
       font-size: 11px;
@@ -218,75 +228,57 @@
       padding: 2px 10px;
       letter-spacing: 1px;
       border-radius: 2px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
     }
-    .mvp-card.blue .mvp-badge { left: 15px; }
-    .mvp-card.red .mvp-badge { right: 15px; }
+    .mvp-card.blue .mvp-tag { left: 10px; }
+    .mvp-card.red .mvp-tag { right: 10px; }
 
-    .mvp-info {
+    .mvp-stats-block {
       display: flex;
-      flex-direction: column;
+      gap: 30px;
       margin: 0 30px;
+      align-items: baseline;
     }
-    .mvp-card.blue .mvp-info { align-items: flex-start; }
-    .mvp-card.red .mvp-info { align-items: flex-end; text-align: right; }
+    .mvp-card.blue .mvp-stats-block { flex-direction: row; }
+    .mvp-card.red .mvp-stats-block { flex-direction: row-reverse; }
 
-    .mvp-name { font-size: 28px; font-weight: 900; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); margin-bottom: 6px; }
-    .mvp-stats-grid { display: flex; gap: 20px; font-size: 26px; font-weight: 900; color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
-    .mvp-stat-label { font-size: 11px; color: #8b978f; letter-spacing: 1px; text-transform: uppercase; }
-
-    /* 中央のスタッツ項目名（KD, ACS, FIRST KILLSなど） */
-    .center-stats-labels {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      top: 130px;
-      width: 220px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      z-index: 2;
-      pointer-events: none;
-    }
-    .stat-label-item {
-      font-size: 12px;
-      font-weight: 800;
-      color: #8b978f;
-      letter-spacing: 2px;
+    .mvp-val {
+      font-size: 32px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
       text-align: center;
-      background: rgba(15,25,35,0.8);
-      padding: 2px 12px;
-      border-radius: 3px;
     }
 
-    /* 3. 通常メンバーリスト（4人×2チーム） */
+    /* 4. 通常メンバーセクション（下段：2〜5人目） */
     .members-section {
       position: relative;
-      z-index: 1;
+      z-index: 2;
       flex: 1;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      background: rgba(10, 15, 22, 0.4);
+      background: rgba(10, 15, 22, 0.3);
     }
 
-    .team-members-col {
+    .members-col {
       display: flex;
       flex-direction: column;
       justify-content: space-around;
-      padding: 10px 40px;
+      padding: 12px 40px;
+      position: relative;
     }
-    .team-members-col.blue { border-right: 1px solid rgba(255,255,255,0.08); }
+    .members-col.blue { border-right: 1px solid rgba(255,255,255,0.08); }
 
     .member-row {
       display: grid;
-      grid-template-columns: 70px 1fr 140px 100px;
+      grid-template-columns: 65px 120px 100px;
       align-items: center;
-      background: rgba(255,255,255,0.03);
-      padding: 6px 14px;
-      border-radius: 4px;
       height: 64px;
+      background: rgba(255,255,255,0.03);
+      padding: 0 10px;
+      border-radius: 4px;
     }
+    .members-col.blue .member-row { grid-template-columns: 65px 120px 100px; justify-content: start; gap: 40px; }
+    .members-col.red .member-row { grid-template-columns: 100px 120px 65px; justify-content: end; gap: 40px; direction: rtl; }
 
     .member-avatar {
       width: 52px;
@@ -294,14 +286,40 @@
       object-fit: cover;
       object-position: top center;
       border-radius: 4px;
+      background: #16222c;
     }
-    .team-members-col.blue .member-avatar { border-left: 3px solid #00b4d8; }
-    .team-members-col.red .member-avatar { border-left: 3px solid #ff4655; }
+    .members-col.blue .member-avatar { border-left: 3px solid #00b4d8; }
+    .members-col.red .member-avatar { border-right: 3px solid #ff4655; direction: ltr; }
 
-    .member-name { font-size: 18px; font-weight: 800; color: #fff; padding-left: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .member-stat {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+      text-align: center;
+    }
+    .members-col.red .member-stat { direction: ltr; }
 
-    .member-stats { font-size: 20px; font-weight: 800; color: #fff; text-align: center; }
-    .member-acs { font-size: 20px; font-weight: 800; color: #ece8e1; text-align: center; }
+    /* 右下のチームロゴ配置エリア（写真のKYOTOロゴの位置） */
+    .team-logo-box {
+      position: absolute;
+      right: 40px;
+      bottom: 20px;
+      width: 150px;
+      height: 150px;
+      background: #0d233a;
+      border: 2px solid #00b4d8;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+      z-index: 10;
+    }
+    .team-logo-img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+    }
   </style>
 </head>
 <body>
@@ -309,13 +327,13 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 10px 0; color: #ff4655; font-size: 15px;">VALORANT 大会リザルト設定</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定（写真一致版）</h3>
 
     <div class="btn-group">
       <button class="btn-control btn-reset" onclick="resetAllState()">全リセット</button>
     </div>
 
-    <div class="section-title sheet-title">📊 Googleスプレッドシート連携</div>
+    <div class="section-title sheet-title">📊 スプレッドシート連携</div>
     <div class="info-box">
       <input type="text" id="sheet-id-input" placeholder="スプレッドシートID" oninput="sendState()">
       <button class="btn-action" onclick="fetchSheetData()">データ読み込み</button>
@@ -327,7 +345,7 @@
         <option value="">-- シートからチーム選択 --</option>
       </select>
       <input type="text" id="team-blue-name" value="東京TECH B" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-blue-logo" value="" oninput="sendState()" placeholder="ロゴURL">
+      <input type="text" id="team-blue-logo" value="" oninput="sendState()" placeholder="右下チームロゴURL">
     </div>
     <div id="blue-controls"></div>
 
@@ -337,72 +355,66 @@
         <option value="">-- シートからチーム選択 --</option>
       </select>
       <input type="text" id="team-red-name" value="名古屋TECH B" oninput="sendState()" placeholder="チーム名">
-      <input type="text" id="team-red-logo" value="" oninput="sendState()" placeholder="ロゴURL">
     </div>
     <div id="red-controls"></div>
   </div>
 
-  <!-- オーバーレイ表示画面 (1920x1080) -->
+  <!-- オーバーレイ画面 (1920x1080) -->
   <div id="overlay-container">
-    <div class="main-wrapper">
+    <div class="screen-wrapper">
       <img id="bg-map-img" class="bg-map" src="images/sunset.png" alt="map">
 
-      <!-- チーム名ヘッダー -->
-      <div class="teams-header">
-        <div class="team-name-box blue">
-          <img id="logo-blue-img" class="team-logo" src="" style="display:none;" onerror="this.style.display='none';">
-          <div id="name-blue-display" class="team-title-text">東京TECH B</div>
-        </div>
-        <div class="team-name-box red">
-          <img id="logo-red-img" class="team-logo" src="" style="display:none;" onerror="this.style.display='none';">
-          <div id="name-red-display" class="team-title-text">名古屋TECH B</div>
-        </div>
+      <!-- 1. 最上部チーム名 -->
+      <div class="team-headers">
+        <div id="name-blue-display" class="team-title-box blue">東京TECH B</div>
+        <div id="name-red-display" class="team-title-box red">名古屋TECH B</div>
       </div>
 
-      <!-- 中央スタッツ項目名バー -->
-      <div class="center-stats-labels">
-        <div class="stat-label-item">KD / ACS / FIRST KILLS</div>
+      <!-- 2. 中央指標ラベル -->
+      <div class="center-metrics">
+        <div class="metric-item">KD</div>
+        <div class="metric-item">ACS</div>
+        <div class="metric-item">FIRST KILLS</div>
       </div>
 
-      <!-- MVPセクション (プレイヤー1がMVP) -->
+      <!-- 3. MVPセクション (プレイヤー1) -->
       <div class="mvp-section">
-        <!-- BLUE MVP (Player 1) -->
+        <!-- BLUE MVP -->
         <div class="mvp-card blue">
-          <div class="mvp-avatar-wrap">
-            <div class="mvp-badge">MVP</div>
+          <div class="mvp-avatar-box">
+            <div class="mvp-tag">MVP</div>
             <img id="img-blue-1" class="mvp-img" src="images/jett.png" alt="agent">
           </div>
-          <div class="mvp-info">
-            <div id="pname-blue-1" class="mvp-name">Player 1</div>
-            <div class="mvp-stats-grid">
-              <div><span id="kda-blue-1">23 / 13</span><div class="mvp-stat-label">KD</div></div>
-              <div><span id="acs-blue-1">340</span><div class="mvp-stat-label">ACS</div></div>
-              <div><span id="fk-blue-1">5</span><div class="mvp-stat-label">FIRST KILLS</div></div>
-            </div>
+          <div class="mvp-stats-block">
+            <div id="kda-blue-1" class="mvp-val">23 / 13</div>
+            <div id="acs-blue-1" class="mvp-val">340</div>
+            <div id="fk-blue-1" class="mvp-val">5</div>
           </div>
         </div>
 
-        <!-- RED MVP (Player 1) -->
+        <!-- RED MVP -->
         <div class="mvp-card red">
-          <div class="mvp-avatar-wrap">
-            <div class="mvp-badge">MVP</div>
+          <div class="mvp-avatar-box">
+            <div class="mvp-tag">MVP</div>
             <img id="img-red-1" class="mvp-img" src="images/omen.png" alt="agent">
           </div>
-          <div class="mvp-info">
-            <div id="pname-red-1" class="mvp-name">Player 1</div>
-            <div class="mvp-stats-grid">
-              <div><span id="fk-red-1">1</span><div class="mvp-stat-label" style="text-align:right;">FIRST KILLS</div></div>
-              <div><span id="acs-red-1">261</span><div class="mvp-stat-label" style="text-align:right;">ACS</div></div>
-              <div><span id="kda-red-1">20 / 9</span><div class="mvp-stat-label" style="text-align:right;">KD</div></div>
-            </div>
+          <div class="mvp-stats-block">
+            <div id="fk-red-1" class="mvp-val">1</div>
+            <div id="acs-red-1" class="mvp-val">261</div>
+            <div id="kda-red-1" class="mvp-val">20 / 9</div>
           </div>
         </div>
       </div>
 
-      <!-- 通常メンバーセクション (プレイヤー2〜5) -->
+      <!-- 4. 通常メンバーセクション (プレイヤー2〜5) -->
       <div class="members-section">
-        <div id="blue-members-col" class="team-members-col blue"></div>
-        <div id="red-members-col" class="team-members-col red"></div>
+        <div id="blue-members-col" class="members-col blue"></div>
+        <div id="red-members-col" class="members-col red"></div>
+      </div>
+
+      <!-- 右下のチームロゴ枠 -->
+      <div id="team-logo-container" class="team-logo-box" style="display:none;">
+        <img id="team-logo-display" class="team-logo-img" src="" alt="logo" onerror="this.parentElement.style.display='none';">
       </div>
     </div>
   </div>
@@ -436,7 +448,7 @@
       ]}
     ];
 
-    const TOPIC_URL = "https://ntfy.sh/josefu_val_result_layout_2026";
+    const TOPIC_URL = "https://ntfy.sh/josefu_val_result_exact_2026";
     let loadedTeamsData = [];
     let isRemoteUpdating = false;
 
@@ -487,33 +499,28 @@
 
         for (let i = 1; i <= 5; i++) {
           const id = `${side}-${i}`;
-          const defName = i === 1 ? (side === 'blue' ? 'JettMain' : 'OmenMain') : `Player ${i}`;
-          const defAgent = i === 1 ? (side === 'blue' ? 'jett' : 'omen') : 'sova';
-          const badgeText = i === 1 ? ' [👑 MVP]' : '';
+          const defAgent = i === 1 ? (side === 'blue' ? 'jett' : 'omen') : (side === 'blue' ? 'sova' : 'neon');
+          const badgeText = i === 1 ? ' [👑 MVP 上段]' : ` [メンバー ${i}]`;
 
-          // 管理パネル用入力欄生成
           ctrl.innerHTML += `
-            <div class="player-ctrl-row">
-              <span class="ctrl-label" style="color:${titleColor};">${side.toUpperCase()} メンバー ${i}${badgeText}</span>
+            <div class="ctrl-row">
+              <span class="ctrl-label" style="color:${titleColor};">${side.toUpperCase()}${badgeText}</span>
               <div class="ctrl-inputs">
-                <input type="text" id="name-input-${id}" value="${defName}" oninput="sendState()" placeholder="プレイヤー名">
                 ${createAgentSelectHTML(id, defAgent)}
               </div>
               <div class="ctrl-stats">
-                <div><div class="lbl-sm">K/D (例:23/13)</div><input type="text" id="kda-input-${id}" value="${i===1?'23/13':'15/15'}" oninput="sendState()"></div>
-                <div><div class="lbl-sm">ACS</div><input type="number" id="acs-input-${id}" value="${i===1?'340':'200'}" oninput="sendState()"></div>
+                <div><div class="lbl-sm">KD</div><input type="text" id="kda-input-${id}" value="${i===1?'23 / 13':'5 / 16'}" oninput="sendState()"></div>
+                <div><div class="lbl-sm">ACS</div><input type="number" id="acs-input-${id}" value="${i===1?'340':'104'}" oninput="sendState()"></div>
                 <div><div class="lbl-sm">FK (1位のみ)</div><input type="number" id="fk-input-${id}" value="${i===1?'5':'0'}" oninput="sendState()"></div>
               </div>
             </div>`;
 
-          // 通常メンバー欄（2〜5人目のみ下部リストに表示）
           if (i > 1) {
             membersCol.innerHTML += `
               <div class="member-row">
                 <img id="img-${id}" class="member-avatar" src="images/${defAgent}.png" alt="agent">
-                <div id="pname-${id}" class="member-name">${defName}</div>
-                <div id="kda-${id}" class="member-stats">${i===1?'23/13':'15/15'}</div>
-                <div id="acs-${id}" class="member-acs">${i===1?'340':'200'}</div>
+                <div id="kda-${id}" class="member-stat">5 / 16</div>
+                <div id="acs-${id}" class="member-stat">104</div>
               </div>`;
           }
         }
@@ -537,37 +544,34 @@
           document.getElementById('team-blue-name').value = data.teams.blue.name;
           document.getElementById('name-blue-display').innerText = data.teams.blue.name;
           document.getElementById('team-blue-logo').value = data.teams.blue.logo || '';
-          setSafeImage(data.teams.blue.logo, document.getElementById('logo-blue-img'));
+          const logoContainer = document.getElementById('team-logo-container');
+          if (data.teams.blue.logo) {
+            logoContainer.style.display = 'flex';
+            setSafeImage(data.teams.blue.logo, document.getElementById('team-logo-display'));
+          } else {
+            logoContainer.style.display = 'none';
+          }
         }
         if (data.teams.red) {
           document.getElementById('team-red-name').value = data.teams.red.name;
           document.getElementById('name-red-display').innerText = data.teams.red.name;
-          document.getElementById('team-red-logo').value = data.teams.red.logo || '';
-          setSafeImage(data.teams.red.logo, document.getElementById('logo-red-img'));
         }
       }
 
       if (data.players) {
         Object.keys(data.players).forEach(id => {
           const p = data.players[id];
-          document.getElementById(`name-input-${id}`).value = p.name;
           document.getElementById(`agent-${id}`).value = p.agent;
           document.getElementById(`kda-input-${id}`).value = p.kda;
           document.getElementById(`acs-input-${id}`).value = p.acs;
           document.getElementById(`fk-input-${id}`).value = p.fk;
 
-          // 画面への反映
+          document.getElementById(`img-${id}`).src = `images/${p.agent}.png`;
           if (id.endsWith('-1')) {
-            // MVP枠
-            document.getElementById(`pname-${id}`).innerText = p.name;
-            document.getElementById(`img-${id}`).src = `images/${p.agent}.png`;
             document.getElementById(`kda-${id}`).innerText = p.kda;
             document.getElementById(`acs-${id}`).innerText = p.acs;
             document.getElementById(`fk-${id}`).innerText = p.fk;
           } else {
-            // 通常メンバー枠
-            document.getElementById(`pname-${id}`).innerText = p.name;
-            document.getElementById(`img-${id}`).src = `images/${p.agent}.png`;
             document.getElementById(`kda-${id}`).innerText = p.kda;
             document.getElementById(`acs-${id}`).innerText = p.acs;
           }
@@ -584,37 +588,35 @@
       const blueName = document.getElementById('team-blue-name').value;
       const blueLogo = document.getElementById('team-blue-logo').value;
       const redName = document.getElementById('team-red-name').value;
-      const redLogo = document.getElementById('team-red-logo').value;
 
       document.getElementById('name-blue-display').innerText = blueName;
       document.getElementById('name-red-display').innerText = redName;
-      setSafeImage(blueLogo, document.getElementById('logo-blue-img'));
-      setSafeImage(redLogo, document.getElementById('logo-red-img'));
+
+      const logoContainer = document.getElementById('team-logo-container');
+      if (blueLogo) {
+        logoContainer.style.display = 'flex';
+        setSafeImage(blueLogo, document.getElementById('team-logo-display'));
+      } else {
+        logoContainer.style.display = 'none';
+      }
 
       const playersPayload = {};
       for (let i = 1; i <= 5; i++) {
         ['blue', 'red'].forEach(side => {
           const id = `${side}-${i}`;
-          const name = document.getElementById(`name-input-${id}`).value;
           const agent = document.getElementById(`agent-${id}`).value;
           const kda = document.getElementById(`kda-input-${id}`).value;
           const acs = document.getElementById(`acs-input-${id}`).value;
           const fk = document.getElementById(`fk-input-${id}`).value;
 
+          document.getElementById(`img-${id}`).src = `images/${agent}.png`;
+          document.getElementById(`kda-${id}`).innerText = kda;
+          document.getElementById(`acs-${id}`).innerText = acs;
           if (i === 1) {
-            document.getElementById(`pname-${id}`).innerText = name;
-            document.getElementById(`img-${id}`).src = `images/${agent}.png`;
-            document.getElementById(`kda-${id}`).innerText = kda;
-            document.getElementById(`acs-${id}`).innerText = acs;
             document.getElementById(`fk-${id}`).innerText = fk;
-          } else {
-            document.getElementById(`pname-${id}`).innerText = name;
-            document.getElementById(`img-${id}`).src = `images/${agent}.png`;
-            document.getElementById(`kda-${id}`).innerText = kda;
-            document.getElementById(`acs-${id}`).innerText = acs;
           }
 
-          playersPayload[id] = { name, agent, kda, acs, fk };
+          playersPayload[id] = { agent, kda, acs, fk };
         });
       }
 
@@ -623,7 +625,7 @@
         const data = {
           teams: {
             blue: { name: blueName, logo: blueLogo },
-            red: { name: redName, logo: redLogo }
+            red: { name: redName }
           },
           players: playersPayload
         };
