@@ -399,7 +399,7 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v24 複数人同期対応版)</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v25 修正版)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
     <div class="sec-title t-sync">📡 OBSリアルタイム同期 URL</div>
@@ -467,7 +467,7 @@
         <div class="metric-item">FIRST KILLS</div>
       </div>
 
-      <!-- MVPセクション -->
+      <!-- MVPセクション（表示用IDを kda-disp-*, acs-disp-*, fk-disp-* に独立化） -->
       <div class="mvp-section">
         <!-- 青側MVP -->
         <div class="mvp-card blue">
@@ -478,9 +478,9 @@
           <div class="mvp-info">
             <div id="name-disp-blue-1" class="player-name-mvp">Player 1</div>
             <div class="mvp-stats">
-              <div id="kda-blue-1" class="stat-val-mvp">23 / 13</div>
-              <div id="acs-blue-1" class="stat-val-mvp">340</div>
-              <div id="fk-blue-1" class="stat-val-mvp">5</div>
+              <div id="kda-disp-blue-1" class="stat-val-mvp">23 / 13</div>
+              <div id="acs-disp-blue-1" class="stat-val-mvp">340</div>
+              <div id="fk-disp-blue-1" class="stat-val-mvp">5</div>
             </div>
           </div>
         </div>
@@ -494,9 +494,9 @@
           <div class="mvp-info" style="order: 1; align-items: flex-end; text-align: right;">
             <div id="name-disp-red-1" class="player-name-mvp">Player 1</div>
             <div class="mvp-stats" style="align-items: flex-end;">
-              <div id="kda-red-1" class="stat-val-mvp">20 / 9</div>
-              <div id="acs-red-1" class="stat-val-mvp">261</div>
-              <div id="fk-red-1" class="stat-val-mvp">1</div>
+              <div id="kda-disp-red-1" class="stat-val-mvp">20 / 9</div>
+              <div id="acs-disp-red-1" class="stat-val-mvp">261</div>
+              <div id="fk-disp-red-1" class="stat-val-mvp">1</div>
             </div>
           </div>
         </div>
@@ -547,7 +547,7 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v24";
+    const STORAGE_KEY = "val_result_clean_v25";
     const TOPIC_URL = "https://ntfy.sh/josefu_val_overlay_2026_secret";
     
     let loadedTeamsData = [];
@@ -686,7 +686,7 @@
         })
         .then(() => {
           const statusEl = document.getElementById('sync-status');
-          if (statusEl) statusEl.innerText = "同期ステータス: ✅ 複数人同期 送信完了 (" + new Date().toLocaleTimeString() + ")";
+          if (statusEl) statusEl.innerText = "同期ステータス: ✅ 同期送信完了 (" + new Date().toLocaleTimeString() + ")";
         })
         .catch(err => {
           const statusEl = document.getElementById('sync-status');
@@ -700,7 +700,7 @@
       
       eventSource.onopen = () => {
         const statusEl = document.getElementById('sync-status');
-        if (statusEl) statusEl.innerText = "同期ステータス: ⚡ 複数人同期 接続中";
+        if (statusEl) statusEl.innerText = "同期ステータス: ⚡ リアルタイム接続中";
       };
 
       eventSource.onmessage = (event) => {
@@ -717,7 +717,7 @@
             renderPayload(data, false);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
             const statusEl = document.getElementById('sync-status');
-            if (statusEl) statusEl.innerText = "同期ステータス: ⚡ 他のユーザーの変更を受信 (" + new Date().toLocaleTimeString() + ")";
+            if (statusEl) statusEl.innerText = "同期ステータス: ⚡ データ受信＆反映 (" + new Date().toLocaleTimeString() + ")";
           }
         } catch (e) {
           try {
@@ -769,7 +769,6 @@
       return payload;
     }
 
-    // 複数人同期用：自分がフォーカス（入力中）している項目は外部更新から保護する
     function renderPayload(data, isSelf) {
       if (!data) return;
 
@@ -869,13 +868,16 @@
           setAgentImage(document.getElementById(`img-${id}`), p.agent);
           document.getElementById(`name-disp-${id}`).innerText = p.playerName;
 
+          // 画面表示用要素（-disp-付き）を確実に更新
+          const kdaDisp = document.getElementById(`kda-disp-${id}`);
+          if (kdaDisp) kdaDisp.innerText = p.kda;
+
+          const acsDisp = document.getElementById(`acs-disp-${id}`);
+          if (acsDisp) acsDisp.innerText = p.acs;
+
           if (isMvp) {
-            document.getElementById(`kda-${id}`).innerText = p.kda;
-            document.getElementById(`acs-${id}`).innerText = p.acs;
-            document.getElementById(`fk-${id}`).innerText = p.fk;
-          } else {
-            document.getElementById(`kda-disp-${id}`).innerText = p.kda;
-            document.getElementById(`acs-disp-${id}`).innerText = p.acs;
+            const fkDisp = document.getElementById(`fk-disp-${id}`);
+            if (fkDisp) fkDisp.innerText = p.fk;
           }
         });
       }
