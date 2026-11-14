@@ -65,7 +65,7 @@
       background: rgba(255,255,255,0.06);
       padding: 8px;
       border-radius: 4px;
--      margin-bottom: 8px;
+      margin-bottom: 8px;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -177,7 +177,6 @@
       color: #fff;
       text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
     }
-    /* 青側チーム名を中央線側（右寄り）に寄せて配置 */
     .team-title.blue { justify-content: flex-end; padding-right: 80px; border-bottom: 4px solid #00b4d8; }
     .team-title.red { justify-content: flex-start; padding-left: 80px; border-bottom: 4px solid #ff4655; }
 
@@ -213,14 +212,15 @@
       background: rgba(10, 15, 22, 0.6);
       z-index: 2;
     }
+    /* キャラとスコアを中央に寄せるため flex-end / flex-start に変更 */
     .mvp-card {
       display: flex;
       align-items: center;
-      padding: 0 40px;
+      padding: 0 60px;
       position: relative;
     }
-    .mvp-card.blue { justify-content: flex-start; }
-    .mvp-card.red { justify-content: flex-end; }
+    .mvp-card.blue { justify-content: flex-end; }
+    .mvp-card.red { justify-content: flex-start; }
 
     .mvp-avatar {
       width: 150px;
@@ -301,6 +301,7 @@
     .members-col.blue { border-right: 1px solid rgba(255,255,255,0.08); padding-right: 20px; }
     .members-col.red { padding-left: 20px; }
 
+    /* 通常メンバーも中央（中央線側）に寄せる */
     .member-row {
       display: flex;
       align-items: center;
@@ -311,8 +312,8 @@
       gap: 20px;
       width: 100%;
     }
-    .members-col.blue .member-row { justify-content: flex-start; }
-    .members-col.red .member-row { justify-content: flex-end; }
+    .members-col.blue .member-row { justify-content: flex-end; }
+    .members-col.red .member-row { justify-content: flex-start; }
 
     .member-avatar {
       width: 52px;
@@ -396,7 +397,7 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v13)</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v14)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
     <div class="sec-title t-sync">📡 OBSリアルタイム同期 URL</div>
@@ -466,7 +467,7 @@
 
       <!-- MVPセクション -->
       <div class="mvp-section">
-        <!-- 青側MVP -->
+        <!-- 青側MVP (中央寄り) -->
         <div class="mvp-card blue">
           <div class="mvp-avatar">
             <div class="mvp-badge">MVP</div>
@@ -482,7 +483,7 @@
           </div>
         </div>
 
-        <!-- 赤側MVP -->
+        <!-- 赤側MVP (中央寄り) -->
         <div class="mvp-card red">
           <div class="mvp-avatar" style="order: 2;">
             <div class="mvp-badge">MVP</div>
@@ -544,7 +545,7 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v13";
+    const STORAGE_KEY = "val_result_clean_v14";
     const CLOUD_API_BASE = "https://kvdb.io/A9x7kP2mQ8wL4vN6zR1tY";
     let loadedTeamsData = [];
     let syncTimer = null;
@@ -639,6 +640,7 @@
             </div>`;
 
           if (i > 1) {
+            // 通常メンバーも中央（中央線側）に寄せるレイアウト
             if (side === 'blue') {
               membersCol.innerHTML += `
                 <div class="member-row">
