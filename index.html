@@ -143,7 +143,6 @@
       overflow: hidden;
     }
 
-    /* 1. 最上部チーム名ヘッダー */
     .teams-header {
       height: 90px;
       display: grid;
@@ -164,7 +163,6 @@
     .team-title.blue { justify-content: flex-start; border-left: 8px solid #00b4d8; }
     .team-title.red { justify-content: flex-end; border-right: 8px solid #ff4655; }
 
-    /* 2. 中央指標ラベル */
     .center-metrics {
       position: absolute;
       left: 50%;
@@ -189,7 +187,6 @@
       border-radius: 3px;
     }
 
-    /* 3. MVPセクション（上段：左右1人ずつ） */
     .mvp-section {
       height: 220px;
       display: grid;
@@ -267,7 +264,6 @@
       text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
     }
 
-    /* 4. 通常メンバーセクション（下段：2〜5人目） */
     .members-section {
       flex: 1;
       display: grid;
@@ -343,7 +339,6 @@
       align-items: center;
     }
 
-    /* 5. 左下のマップ */
     .map-box {
       position: absolute;
       left: 30px;
@@ -359,7 +354,6 @@
     }
     .map-box img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* 6. 右下のチームロゴ */
     .logo-box {
       position: absolute;
       right: 30px;
@@ -387,10 +381,10 @@
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
     <!-- スプレッドシート連携 -->
-    <div class="sec-title t-sheet">📊 スプレッドシート連携</div>
+    <div class="sec-title t-sheet">📊 スプレッドシート連携 (CSV)</div>
     <div class="ctrl-box">
       <input type="text" id="sheet-id-input" placeholder="スプレッドシートIDを入力">
-      <button class="btn-action" onclick="fetchSheetData()">データを読み込み</button>
+      <button class="btn-action" onclick="fetchSheetData()">CSVからデータを読み込み</button>
     </div>
 
     <div class="sec-title t-map">🗺️ マップ選択</div>
@@ -526,7 +520,7 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v7";
+    const STORAGE_KEY = "val_result_clean_v8";
     let loadedTeamsData = [];
 
     if (new URLSearchParams(window.location.search).has('obs')) {
@@ -604,7 +598,7 @@
       });
     }
 
-    // Googleスプレッドシートデータの読み込み
+    // Googleスプレッドシート（CSVエクスポート形式）からの確実な読み込み
     function fetchSheetData() {
       const sheetId = document.getElementById('sheet-id-input').value.trim();
       if (!sheetId) {
@@ -612,26 +606,26 @@
         return;
       }
 
-      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
 
       fetch(url)
-        .then(res => res.text())
-        .then(text => {
-          const json = JSON.parse(text.substr(47).slice(0, -2));
-          const rows = json.table.rows;
+        .then(res => {
+          if (!res.ok) throw new Error("ネットワークエラー");
+          return res.text();
+        })
+        .then(csvText => {
+          const lines = csvText.split('\n');
           loadedTeamsData = [];
 
-          rows.forEach(row => {
-            if (!row.c || !row.c[0]) return;
-            const teamName = row.c[0] && row.c[0].v ? String(row.c[0].v).trim() : "";
-            let teamLogo = row.c[2] && row.c[2].v ? String(row.c[2].v).trim() : "";
-            
-            const players = [];
-            for (let col = 3; col < row.c.length; col++) {
-              if (row.c[col] && row.c[col].v) {
-                players.push(String(row.c[col].v).trim());
-              }
-            }
+          lines.forEach((line, index) => {
+            if (index === 0) return; // 1行目（見出し）はスキップ
+            if (!line.trim()) return;
+
+            // カンマ区切りでパース
+            const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+            const teamName = cols[0] || "";
+            const teamLogo = cols[1] || "";
+            const players = cols.slice(2).filter(p => p !== ""); // 3列目以降を選手名として抽出
 
             if (teamName) {
               loadedTeamsData.push({ teamName, teamLogo, players });
@@ -643,7 +637,7 @@
         })
         .catch(err => {
           console.error(err);
-          alert("データの取得に失敗しました。スプレッドシートの公開設定やIDを確認してください。");
+          alert("読み込みに失敗しました。スプレッドシートが「リンクを知っている全員が閲覧可」になっているか、IDが正しいか確認してください。");
         });
     }
 
@@ -674,11 +668,15 @@
         const playerSelect = document.getElementById(`name-input-${id}`);
         if (playerSelect) {
           let optionsHtml = '';
-          team.players.forEach(p => {
-            optionsHtml += `<option value="${p}">${p}</option>`;
-          });
+          if (team.players && team.players.length > 0) {
+            team.players.forEach(p => {
+              optionsHtml += `<option value="${p}">${p}</option>`;
+            });
+          } else {
+            optionsHtml = `<option value="Player ${i}">Player ${i}</option>`;
+          }
           playerSelect.innerHTML = optionsHtml;
-          if (team.players[i - 1]) {
+          if (team.players && team.players[i - 1]) {
             playerSelect.value = team.players[i - 1];
           }
         }
@@ -737,6 +735,7 @@
               document.getElementById(`acs-disp-${id}`).innerText = acs;
             } else {
               document.getElementById(`kda-${id}`).innerText = kda;
+              document.getElementById(`acs-id-${id}`)? document.getElementById(`acs-id-${id}`).innerText = acs : null;
               document.getElementById(`acs-${id}`).innerText = acs;
               document.getElementById(`fk-${id}`).innerText = fk;
             }
@@ -776,7 +775,7 @@
             const p = data.players[id];
             const isMvp = id.endsWith('-1');
             const nameEl = document.getElementById(`name-input-${id}`);
-            if (nameEl) {
+            if (nameEl && p.playerName) {
               if (!Array.from(nameEl.options).some(o => o.value === p.playerName)) {
                 nameEl.innerHTML += `<option value="${p.playerName}">${p.playerName}</option>`;
               }
