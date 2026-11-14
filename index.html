@@ -14,7 +14,6 @@
       height: 1080px;
     }
 
-    /* 管理パネル切り替えボタン */
     #toggle-btn {
       position: fixed;
       top: 15px;
@@ -31,7 +30,6 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.6);
     }
 
-    /* 管理パネル本体 */
     #admin-panel {
       position: fixed;
       top: 65px;
@@ -44,7 +42,7 @@
       color: white;
       height: 85vh;
       overflow-y: auto;
-      width: 440px;
+      width: 450px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     }
 
@@ -57,6 +55,7 @@
       margin: 12px 0 6px 0;
       border-radius: 4px;
     }
+    .t-sync { background: #9b59b6; color: #fff; }
     .t-blue { background: #00b4d8; color: #fff; }
     .t-red { background: #ff4655; color: #fff; }
     .t-map { background: #ffb142; color: #111; }
@@ -106,6 +105,17 @@
     }
     .btn-action:hover { background: #27ae60; }
 
+    .btn-copy {
+      background: #9b59b6;
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-copy:hover { background: #8e44ad; }
+
     .btn-reset {
       background: #e74c3c;
       color: white;
@@ -115,6 +125,12 @@
       border-radius: 4px;
       cursor: pointer;
       width: 100%;
+    }
+
+    .sync-status {
+      font-size: 11px;
+      color: #2ecc71;
+      font-weight: bold;
     }
 
     /* =========================================
@@ -161,8 +177,9 @@
       color: #fff;
       text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
     }
-    .team-title.blue { justify-content: flex-start; border-left: 8px solid #00b4d8; }
-    .team-title.red { justify-content: flex-end; border-right: 8px solid #ff4655; }
+    /* 青側チーム名を中央寄せに調整 */
+    .team-title.blue { justify-content: center; border-bottom: 4px solid #00b4d8; }
+    .team-title.red { justify-content: flex-end; border-bottom: 4px solid #ff4655; }
 
     .center-metrics {
       position: absolute;
@@ -203,7 +220,8 @@
       position: relative;
     }
     .mvp-card.blue { justify-content: flex-start; }
-    .mvp-card.red { justify-content: flex-end; flex-direction: row-reverse; }
+    /* 赤側MVPの配置を調整（キャラとスコアの順序を修正） */
+    .mvp-card.red { justify-content: flex-end; }
 
     .mvp-avatar {
       width: 150px;
@@ -295,7 +313,7 @@
       width: 100%;
     }
     .members-col.blue .member-row { justify-content: flex-start; }
-    .members-col.red .member-row { justify-content: flex-end; flex-direction: row-reverse; }
+    .members-col.red .member-row { justify-content: flex-end; }
 
     .member-avatar {
       width: 52px;
@@ -327,15 +345,17 @@
       max-width: 150px;
     }
 
+    /* MVP以外のメンバーのスコアを縦並びに変更 */
     .member-stats {
       display: flex;
-      gap: 20px;
+      flex-direction: column;
+      gap: 2px;
     }
     .stat-val-member {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 900;
       color: #fff;
-      height: 20px;
+      height: 18px;
       display: flex;
       align-items: center;
     }
@@ -378,10 +398,17 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (最新版 v10)</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v12)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
-    <!-- スプレッドシート連携 -->
+    <div class="sec-title t-sync">📡 OBSリアルタイム同期 URL</div>
+    <div class="ctrl-box">
+      <div class="lbl-sm">下のURLをOBSの「ブラウザソース」に貼り付けてください</div>
+      <input type="text" id="obs-sync-url" readonly onclick="this.select()">
+      <button class="btn-copy" onclick="copyObsUrl()">OBS用同期URLをコピー</button>
+      <div id="sync-status" class="sync-status">同期ステータス: 待機中...</div>
+    </div>
+
     <div class="sec-title t-sheet">📊 スプレッドシート連携</div>
     <div class="ctrl-box">
       <div class="lbl-sm">スプレッドシートのURL または ID を貼り付け</div>
@@ -391,7 +418,7 @@
 
     <div class="sec-title t-map">🗺️ マップ選択</div>
     <div class="ctrl-box">
-      <select id="map-select" onchange="updateAll()">
+      <select id="map-select" onchange="onUserEdit()">
         <option value="ascent">ascent</option>
         <option value="haven">haven</option>
         <option value="sunset">sunset</option>
@@ -403,32 +430,29 @@
       </select>
     </div>
 
-    <!-- BLUE TEAM -->
     <div class="sec-title t-blue">BLUE TEAM (左側)</div>
     <div class="ctrl-box">
       <select id="select-team-blue-preset" onchange="applyTeamPreset('blue')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <div class="lbl-sm">チーム名（直接編集も可）</div>
-      <input type="text" id="team-blue-name" value="東京TECH B" oninput="updateAll()">
+      <div class="lbl-sm">チーム名</div>
+      <input type="text" id="team-blue-name" value="東京TECH B" oninput="onUserEdit()">
     </div>
     <div id="blue-controls"></div>
 
-    <!-- RED TEAM -->
     <div class="sec-title t-red">RED TEAM (右側)</div>
     <div class="ctrl-box">
       <select id="select-team-red-preset" onchange="applyTeamPreset('red')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <div class="lbl-sm">チーム名（直接編集も可）</div>
-      <input type="text" id="team-red-name" value="名古屋TECH B" oninput="updateAll()">
+      <div class="lbl-sm">チーム名</div>
+      <input type="text" id="team-red-name" value="名古屋TECH B" oninput="onUserEdit()">
       <div class="lbl-sm">右下チームロゴURL またはファイル名</div>
-      <input type="text" id="team-red-logo" value="" oninput="updateAll()">
+      <input type="text" id="team-red-logo" value="" oninput="onUserEdit()">
     </div>
     <div id="red-controls"></div>
   </div>
 
-  <!-- オーバーレイ画面本体 -->
   <div id="overlay-container">
     <div class="screen-wrap">
       <div class="teams-header">
@@ -444,10 +468,11 @@
 
       <!-- MVPセクション -->
       <div class="mvp-section">
+        <!-- 青側MVP -->
         <div class="mvp-card blue">
           <div class="mvp-avatar">
             <div class="mvp-badge">MVP</div>
-            <img id="img-blue-1" src="images/jett.png" alt="agent">
+            <img id="img-blue-1" src="images/jett.png" alt="agent" onerror="handleImgError(this, 'jett')">
           </div>
           <div class="mvp-info">
             <div id="name-disp-blue-1" class="player-name-mvp">Player 1</div>
@@ -459,18 +484,19 @@
           </div>
         </div>
 
+        <!-- 赤側MVP (キャラとスコアの順序を青側と同じに統一) -->
         <div class="mvp-card red">
-          <div class="mvp-info" style="align-items: flex-end;">
+          <div class="mvp-avatar" style="order: 2;">
+            <div class="mvp-badge">MVP</div>
+            <img id="img-red-1" src="images/omen.png" alt="agent" onerror="handleImgError(this, 'omen')">
+          </div>
+          <div class="mvp-info" style="order: 1; align-items: flex-end; text-align: right;">
             <div id="name-disp-red-1" class="player-name-mvp">Player 1</div>
             <div class="mvp-stats" style="align-items: flex-end;">
               <div id="kda-red-1" class="stat-val-mvp">20 / 9</div>
               <div id="acs-red-1" class="stat-val-mvp">261</div>
               <div id="fk-red-1" class="stat-val-mvp">1</div>
             </div>
-          </div>
-          <div class="mvp-avatar">
-            <div class="mvp-badge">MVP</div>
-            <img id="img-red-1" src="images/omen.png" alt="agent">
           </div>
         </div>
       </div>
@@ -481,12 +507,10 @@
         <div id="red-members-col" class="members-col red"></div>
       </div>
 
-      <!-- 左下のマップ -->
       <div class="map-box">
-        <img id="map-img-display" src="images/sunset.png" alt="map">
+        <img id="map-img-display" src="images/sunset.png" alt="map" onerror="handleImgError(this, 'sunset')">
       </div>
 
-      <!-- 右下のチームロゴ -->
       <div id="team-logo-container" class="logo-box" style="display:none;">
         <img id="team-logo-display" src="" alt="logo">
       </div>
@@ -522,17 +546,51 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v10";
+    const STORAGE_KEY = "val_result_clean_v12";
+    const CLOUD_API_BASE = "https://kvdb.io/A9x7kP2mQ8wL4vN6zR1tY";
     let loadedTeamsData = [];
+    let syncTimer = null;
+    let lastTimestamp = 0;
 
-    if (new URLSearchParams(window.location.search).has('obs')) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isObsMode = urlParams.has('obs');
+    let roomId = urlParams.get('room');
+
+    if (!roomId) {
+      roomId = localStorage.getItem("val_room_id") || "room_" + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem("val_room_id", roomId);
+    }
+
+    if (isObsMode) {
       const style = document.createElement('style');
       style.innerHTML = '#admin-panel, #toggle-btn { display: none !important; }';
       document.head.appendChild(style);
     }
 
+    function handleImgError(img, baseName) {
+      const attempt = parseInt(img.dataset.attempt || "0", 10);
+      if (attempt === 0) {
+        img.dataset.attempt = "1";
+        const cap = baseName.charAt(0).toUpperCase() + baseName.slice(1);
+        img.src = `images/${cap}.png`;
+      } else if (attempt === 1) {
+        img.dataset.attempt = "2";
+        img.src = `images/${baseName.toUpperCase()}.png`;
+      } else if (attempt === 2) {
+        img.dataset.attempt = "3";
+        img.src = `images/${baseName}.jpg`;
+      }
+    }
+
+    function setAgentImage(imgEl, agentId) {
+      if (!imgEl) return;
+      imgEl.dataset.attempt = "0";
+      imgEl.onerror = () => handleImgError(imgEl, agentId);
+      imgEl.src = `images/${agentId}.png`;
+    }
+
     function createAgentSelectHTML(id, defaultAgent) {
-      let html = `<select id="agent-${id}" onchange="updateAll()">`;
+      let html = `<select id="agent-${id}" onchange="onUserEdit()">`;
       agents.forEach(group => {
         html += `<optgroup label="${group.category}">`;
         group.list.forEach(a => {
@@ -546,12 +604,17 @@
     }
 
     function createPlayerSelectHTML(id, defaultName) {
-      return `<select id="name-input-${id}" onchange="updateAll()">
+      return `<select id="name-input-${id}" onchange="onUserEdit()">
         <option value="${defaultName}">${defaultName}</option>
       </select>`;
     }
 
     function init() {
+      const baseUrl = window.location.origin + window.location.pathname;
+      const obsUrl = `${baseUrl}?obs=1&room=${roomId}`;
+      const obsInput = document.getElementById('obs-sync-url');
+      if (obsInput) obsInput.value = obsUrl;
+
       ['blue', 'red'].forEach(side => {
         const ctrl = document.getElementById(`${side}-controls`);
         const membersCol = document.getElementById(`${side}-members-col`);
@@ -571,36 +634,198 @@
               <div class="lbl-sm" style="margin-top:2px;">エージェント</div>
               ${createAgentSelectHTML(id, defAgent)}
               <div class="ctrl-grid" style="margin-top:4px;">
-                <div><div class="lbl-sm">KD</div><input type="text" id="kda-${id}" value="${i===1?'23 / 13':'5 / 16'}" oninput="updateAll()"></div>
-                <div><div class="lbl-sm">ACS</div><input type="number" id="acs-${id}" value="${i===1?'340':'104'}" oninput="updateAll()"></div>
-                <div><div class="lbl-sm">FK ${i===1?'(MVP)':'(-)'}</div><input type="number" id="fk-${id}" value="${i===1?'5':'0'}" ${i>1?'disabled':''} oninput="updateAll()"></div>
+                <div><div class="lbl-sm">KD</div><input type="text" id="kda-${id}" value="${i===1?'23 / 13':'5 / 16'}" oninput="onUserEdit()"></div>
+                <div><div class="lbl-sm">ACS</div><input type="number" id="acs-${id}" value="${i===1?'340':'104'}" oninput="onUserEdit()"></div>
+                <div><div class="lbl-sm">FK ${i===1?'(MVP)':'(-)'}</div><input type="number" id="fk-${id}" value="${i===1?'5':'0'}" ${i>1?'disabled':''} oninput="onUserEdit()"></div>
               </div>
             </div>`;
 
           if (i > 1) {
-            membersCol.innerHTML += `
-              <div class="member-row">
-                <img id="img-${id}" class="member-avatar" src="images/${defAgent}.png" alt="agent">
-                <div class="member-info">
-                  <div id="name-disp-${id}" class="player-name-member">${defName}</div>
-                  <div class="member-stats">
-                    <div id="kda-disp-${id}" class="stat-val-member">5 / 16</div>
-                    <div id="acs-disp-${id}" class="stat-val-member">104</div>
+            // 赤側メンバー行も左から [アバター] [名前・スコア縦並び] に統一してすっきりさせる
+            if (side === 'blue') {
+              membersCol.innerHTML += `
+                <div class="member-row">
+                  <img id="img-${id}" class="member-avatar" src="images/${defAgent}.png" alt="agent" onerror="handleImgError(this, '${defAgent}')">
+                  <div class="member-info">
+                    <div id="name-disp-${id}" class="player-name-member">${defName}</div>
+                    <div class="member-stats">
+                      <div id="kda-disp-${id}" class="stat-val-member">5 / 16</div>
+                      <div id="acs-disp-${id}" class="stat-val-member">104</div>
+                    </div>
                   </div>
-                </div>
-              </div>`;
+                </div>`;
+            } else {
+              membersCol.innerHTML += `
+                <div class="member-row">
+                  <div class="member-info" style="align-items: flex-end; text-align: right;">
+                    <div id="name-disp-${id}" class="player-name-member">${defName}</div>
+                    <div class="member-stats" style="align-items: flex-end;">
+                      <div id="kda-disp-${id}" class="stat-val-member">5 / 16</div>
+                      <div id="acs-disp-${id}" class="stat-val-member">104</div>
+                    </div>
+                  </div>
+                  <img id="img-${id}" class="member-avatar" src="images/${defAgent}.png" alt="agent" onerror="handleImgError(this, '${defAgent}')">
+                </div>`;
+            }
           }
         }
       });
 
-      loadFromStorage();
+      if (isObsMode) {
+        fetchFromCloud();
+        setInterval(fetchFromCloud, 800);
+      } else {
+        loadFromStorage();
+        window.addEventListener('storage', (e) => {
+          if (e.key === STORAGE_KEY) loadFromStorage();
+        });
+      }
+    }
 
-      window.addEventListener('storage', (e) => {
-        if (e.key === STORAGE_KEY) loadFromStorage();
+    function copyObsUrl() {
+      const obsInput = document.getElementById('obs-sync-url');
+      obsInput.select();
+      navigator.clipboard.writeText(obsInput.value).then(() => {
+        alert("OBS用同期URLをコピーしました！\nOBSのブラウザソースのURLに貼り付けてください。");
       });
     }
 
-    // URLまたはIDからスプレッドシートIDを抽出してCSVを取得
+    function onUserEdit() {
+      const payload = buildPayload();
+      renderPayload(payload);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => {
+        pushToCloud(payload);
+      }, 200);
+    }
+
+    function buildPayload() {
+      const mapVal = document.getElementById('map-select').value;
+      const blueName = document.getElementById('team-blue-name').value;
+      const redName = document.getElementById('team-red-name').value;
+      const redLogo = document.getElementById('team-red-logo').value;
+
+      const payload = {
+        timestamp: Date.now(),
+        sheetId: document.getElementById('sheet-id-input').value,
+        loadedTeamsData: loadedTeamsData,
+        selectedPresets: {
+          blue: document.getElementById('select-team-blue-preset').value,
+          red: document.getElementById('select-team-red-preset').value
+        },
+        map: mapVal,
+        teams: { blue: blueName, red: redName, redLogo: redLogo },
+        players: {}
+      };
+
+      for (let i = 1; i <= 5; i++) {
+        ['blue', 'red'].forEach(side => {
+          const id = `${side}-${i}`;
+          const nameEl = document.getElementById(`name-input-${id}`);
+          const playerName = nameEl ? nameEl.value : `Player ${i}`;
+          const agent = document.getElementById(`agent-${id}`).value;
+          const kda = document.getElementById(`kda-${id}`).value;
+          const acs = document.getElementById(`acs-${id}`).value;
+          const fk = document.getElementById(`fk-${id}`).value;
+          payload.players[id] = { playerName, agent, kda, acs, fk };
+        });
+      }
+      return payload;
+    }
+
+    function renderPayload(data) {
+      if (!data) return;
+
+      if (data.map) {
+        const mapSel = document.getElementById('map-select');
+        if (mapSel) mapSel.value = data.map;
+        const mapImg = document.getElementById('map-img-display');
+        setAgentImage(mapImg, data.map);
+      }
+
+      if (data.teams) {
+        if (document.getElementById('team-blue-name')) document.getElementById('team-blue-name').value = data.teams.blue || '';
+        if (document.getElementById('team-red-name')) document.getElementById('team-red-name').value = data.teams.red || '';
+        if (document.getElementById('team-red-logo')) document.getElementById('team-red-logo').value = data.teams.redLogo || '';
+
+        document.getElementById('name-blue-display').innerText = data.teams.blue || '';
+        document.getElementById('name-red-display').innerText = data.teams.red || '';
+
+        const lBox = document.getElementById('team-logo-container');
+        const lDisp = document.getElementById('team-logo-display');
+        if (data.teams.redLogo) {
+          lBox.style.display = 'flex';
+          lDisp.src = data.teams.redLogo.startsWith('http') ? data.teams.redLogo : `images/${data.teams.redLogo}`;
+        } else {
+          lBox.style.display = 'none';
+        }
+      }
+
+      if (data.players) {
+        Object.keys(data.players).forEach(id => {
+          const p = data.players[id];
+          const isMvp = id.endsWith('-1');
+
+          const nameEl = document.getElementById(`name-input-${id}`);
+          if (nameEl && p.playerName) {
+            if (!Array.from(nameEl.options).some(o => o.value === p.playerName)) {
+              nameEl.innerHTML += `<option value="${p.playerName}">${p.playerName}</option>`;
+            }
+            nameEl.value = p.playerName;
+          }
+          if (document.getElementById(`agent-${id}`)) document.getElementById(`agent-${id}`).value = p.agent;
+          if (document.getElementById(`kda-${id}`)) document.getElementById(`kda-${id}`).value = p.kda;
+          if (document.getElementById(`acs-${id}`)) document.getElementById(`acs-${id}`).value = p.acs;
+          if (isMvp && document.getElementById(`fk-${id}`)) document.getElementById(`fk-${id}`).value = p.fk;
+
+          setAgentImage(document.getElementById(`img-${id}`), p.agent);
+          document.getElementById(`name-disp-${id}`).innerText = p.playerName;
+
+          if (isMvp) {
+            document.getElementById(`kda-${id}`).innerText = p.kda;
+            document.getElementById(`acs-${id}`).innerText = p.acs;
+            document.getElementById(`fk-${id}`).innerText = p.fk;
+          } else {
+            document.getElementById(`kda-disp-${id}`).innerText = p.kda;
+            document.getElementById(`acs-disp-${id}`).innerText = p.acs;
+          }
+        });
+      }
+    }
+
+    function pushToCloud(payload) {
+      const statusEl = document.getElementById('sync-status');
+      if (statusEl) statusEl.innerText = "同期ステータス: 送信中...";
+
+      fetch(`${CLOUD_API_BASE}/${roomId}`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        if (statusEl) statusEl.innerText = "同期ステータス: ✅ 同期完了 (" + new Date().toLocaleTimeString() + ")";
+      })
+      .catch(() => {
+        if (statusEl) statusEl.innerText = "同期ステータス: ⚠️ 通信エラー";
+      });
+    }
+
+    function fetchFromCloud() {
+      fetch(`${CLOUD_API_BASE}/${roomId}?t=${Date.now()}`)
+        .then(res => {
+          if (!res.ok) return null;
+          return res.json();
+        })
+        .then(data => {
+          if (data && data.timestamp && data.timestamp > lastTimestamp) {
+            lastTimestamp = data.timestamp;
+            renderPayload(data);
+          }
+        })
+        .catch(() => {});
+    }
+
     function fetchSheetData() {
       const rawInput = document.getElementById('sheet-id-input').value.trim();
       if (!rawInput) {
@@ -608,10 +833,8 @@
         return;
       }
 
-      // URLがそのまま貼られた場合でも /d/ と /edit の間のIDを自動抽出
       const match = rawInput.match(/\/d\/([a-zA-Z0-9-_]+)/);
       const sheetId = match ? match[1] : rawInput;
-
       const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
 
       fetch(url)
@@ -624,13 +847,11 @@
           loadedTeamsData = [];
 
           lines.forEach((line, index) => {
-            if (index === 0) return; // 1行目（見出し）をスキップ
-            if (!line.trim()) return;
-
+            if (index === 0 || !line.trim()) return;
             const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
             const teamName = cols[0] || "";
             const teamLogo = cols[1] || "";
-            const players = cols.slice(2).filter(p => p !== ""); // C列以降を選手名として抽出
+            const players = cols.slice(2).filter(p => p !== "");
 
             if (teamName) {
               loadedTeamsData.push({ teamName, teamLogo, players });
@@ -638,12 +859,12 @@
           });
 
           updateTeamDropdowns();
-          updateAll();
-          alert(`${loadedTeamsData.length} 件のチーム情報を読み込みました！\nBLUE/RED TEAMのプルダウンからチームを選択してください。`);
+          onUserEdit();
+          alert(`${loadedTeamsData.length} 件のチーム情報を読み込みました！`);
         })
         .catch(err => {
           console.error(err);
-          alert("読み込みに失敗しました。\nスプレッドシートの共有設定が「リンクを知っている全員が閲覧可」になっているか確認してください。");
+          alert("読み込みに失敗しました。共有設定をご確認ください。");
         });
     }
 
@@ -687,77 +908,15 @@
           }
         }
       }
-      updateAll();
-    }
-
-    function updateAll() {
-      try {
-        const mapVal = document.getElementById('map-select').value;
-        document.getElementById('map-img-display').src = `images/${mapVal}.png`;
-
-        const blueName = document.getElementById('team-blue-name').value;
-        const redName = document.getElementById('team-red-name').value;
-        const redLogo = document.getElementById('team-red-logo').value;
-
-        document.getElementById('name-blue-display').innerText = blueName;
-        document.getElementById('name-red-display').innerText = redName;
-
-        const lBox = document.getElementById('team-logo-container');
-        const lDisp = document.getElementById('team-logo-display');
-        if (redLogo) {
-          lBox.style.display = 'flex';
-          lDisp.src = redLogo.startsWith('http') ? redLogo : `images/${redLogo}`;
-        } else {
-          lBox.style.display = 'none';
-        }
-
-        const payload = {
-          sheetId: document.getElementById('sheet-id-input').value,
-          loadedTeamsData: loadedTeamsData,
-          selectedPresets: {
-            blue: document.getElementById('select-team-blue-preset').value,
-            red: document.getElementById('select-team-red-preset').value
-          },
-          map: mapVal,
-          teams: { blue: blueName, red: redName, redLogo: redLogo },
-          players: {}
-        };
-
-        for (let i = 1; i <= 5; i++) {
-          ['blue', 'red'].forEach(side => {
-            const id = `${side}-${i}`;
-            const nameEl = document.getElementById(`name-input-${id}`);
-            const playerName = nameEl ? nameEl.value : `Player ${i}`;
-            const agent = document.getElementById(`agent-${id}`).value;
-            const kda = document.getElementById(`kda-${id}`).value;
-            const acs = document.getElementById(`acs-${id}`).value;
-            const fk = document.getElementById(`fk-${id}`).value;
-
-            document.getElementById(`img-${id}`).src = `images/${agent}.png`;
-            document.getElementById(`name-disp-${id}`).innerText = playerName;
-
-            if (i > 1) {
-              document.getElementById(`kda-disp-${id}`).innerText = kda;
-              document.getElementById(`acs-disp-${id}`).innerText = acs;
-            } else {
-              document.getElementById(`kda-${id}`).innerText = kda;
-              document.getElementById(`acs-${id}`).innerText = acs;
-              document.getElementById(`fk-${id}`).innerText = fk;
-            }
-
-            payload.players[id] = { playerName, agent, kda, acs, fk };
-          });
-        }
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      } catch (err) {
-        console.error(err);
-      }
+      onUserEdit();
     }
 
     function loadFromStorage() {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) return;
+      if (!saved) {
+        onUserEdit();
+        return;
+      }
       try {
         const data = JSON.parse(saved);
         if (data.sheetId) document.getElementById('sheet-id-input').value = data.sheetId;
@@ -769,38 +928,8 @@
           if (data.selectedPresets.blue) document.getElementById('select-team-blue-preset').value = data.selectedPresets.blue;
           if (data.selectedPresets.red) document.getElementById('select-team-red-preset').value = data.selectedPresets.red;
         }
-        if (data.map) document.getElementById('map-select').value = data.map;
-        if (data.teams) {
-          document.getElementById('team-blue-name').value = data.teams.blue || '';
-          document.getElementById('team-red-name').value = data.teams.red || '';
-          document.getElementById('team-red-logo').value = data.teams.redLogo || '';
-        }
-        if (data.players) {
-          Object.keys(data.players).forEach(id => {
-            const p = data.players[id];
-            const isMvp = id.endsWith('-1');
-            const nameEl = document.getElementById(`name-input-${id}`);
-            if (nameEl && p.playerName) {
-              if (!Array.from(nameEl.options).some(o => o.value === p.playerName)) {
-                nameEl.innerHTML += `<option value="${p.playerName}">${p.playerName}</option>`;
-              }
-              nameEl.value = p.playerName;
-            }
-            if (document.getElementById(`agent-${id}`)) document.getElementById(`agent-${id}`).value = p.agent;
-            if (document.getElementById(`kda-${id}`)) document.getElementById(`kda-${id}`).value = p.kda;
-            if (document.getElementById(`acs-${id}`)) document.getElementById(`acs-${id}`).value = p.acs;
-            if (isMvp && document.getElementById(`fk-${id}`)) document.getElementById(`fk-${id}`).value = p.fk;
-
-            if (document.getElementById(`img-${id}`)) document.getElementById(`img-${id}`).src = `images/${p.agent}.png`;
-            if (document.getElementById(`name-disp-${id}`)) document.getElementById(`name-disp-${id}`).innerText = p.playerName;
-
-            if (!isMvp) {
-              if (document.getElementById(`kda-disp-${id}`)) document.getElementById(`kda-disp-${id}`).innerText = p.kda;
-              if (document.getElementById(`acs-disp-${id}`)) document.getElementById(`acs-disp-${id}`).innerText = p.acs;
-            }
-          });
-        }
-        updateAll();
+        renderPayload(data);
+        pushToCloud(data);
       } catch (e) {}
     }
 
