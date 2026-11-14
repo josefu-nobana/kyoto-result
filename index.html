@@ -222,7 +222,6 @@
     .mvp-card.blue { justify-content: flex-end; }
     .mvp-card.red { justify-content: flex-start; }
 
-    /* MVPキャラ画像をさらに大きく拡大 (200px × 250px) */
     .mvp-avatar {
       width: 200px;
       height: 250px;
@@ -259,7 +258,6 @@
     .mvp-card.blue .mvp-info { align-items: flex-start; }
     .mvp-card.red .mvp-info { align-items: flex-end; text-align: right; }
 
-    /* MVPプレイヤー名を大きく拡大 */
     .player-name-mvp {
       font-size: 28px;
       font-weight: bold;
@@ -274,7 +272,6 @@
       flex-direction: column;
       gap: 12px;
     }
-    /* MVPスコア（KD/ACS/FK）を大きく拡大 */
     .stat-val-mvp {
       font-size: 36px;
       font-weight: 900;
@@ -304,7 +301,6 @@
     .members-col.blue { padding-right: 25px; }
     .members-col.red { padding-left: 25px; }
 
-    /* 通常メンバー行をさらに拡大 (高さ92px) */
     .member-row {
       display: flex;
       align-items: center;
@@ -318,7 +314,6 @@
     .members-col.blue .member-row { justify-content: flex-end; }
     .members-col.red .member-row { justify-content: flex-start; }
 
-    /* 通常メンバーのキャラ画像をさらに大きく拡大 (82px × 82px) */
     .member-avatar {
       width: 82px;
       height: 82px;
@@ -340,7 +335,6 @@
     .members-col.blue .member-info { align-items: flex-start; }
     .members-col.red .member-info { align-items: flex-end; text-align: right; }
 
-    /* 通常メンバーの名前を大きく拡大 */
     .player-name-member {
       font-size: 20px;
       font-weight: bold;
@@ -357,7 +351,6 @@
       flex-direction: column;
       gap: 4px;
     }
-    /* 通常メンバーのスコア（KD/ACS）を大きく拡大 */
     .stat-val-member {
       font-size: 24px;
       font-weight: 900;
@@ -406,7 +399,7 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v18 特大配信版)</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v20 安定同期版)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
     <div class="sec-title t-sync">📡 OBSリアルタイム同期 URL</div>
@@ -554,7 +547,7 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v18";
+    const STORAGE_KEY = "val_result_clean_v20";
     const CLOUD_API_BASE = "https://kvdb.io/A9x7kP2mQ8wL4vN6zR1tY";
     let loadedTeamsData = [];
     let syncTimer = null;
@@ -562,12 +555,10 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const isObsMode = urlParams.has('obs');
-    let roomId = urlParams.get('room');
-
-    if (!roomId) {
-      roomId = localStorage.getItem("val_room_id") || "room_" + Math.random().toString(36).substring(2, 10);
-      localStorage.setItem("val_room_id", roomId);
-    }
+    
+    // URLにroomが指定されていない場合でも、共通のデフォルトルームを使用するように設定
+    let roomId = urlParams.get('room') || localStorage.getItem("val_room_id") || "val_default_match_room";
+    localStorage.setItem("val_room_id", roomId);
 
     if (isObsMode) {
       const style = document.createElement('style');
@@ -619,7 +610,8 @@
 
     function init() {
       const baseUrl = window.location.origin + window.location.pathname;
-      const obsUrl = `${baseUrl}?obs=1&room=${roomId}`;
+      // シンプルに ?obs だけでも動くURLを生成
+      const obsUrl = `${baseUrl}?obs`;
       const obsInput = document.getElementById('obs-sync-url');
       if (obsInput) obsInput.value = obsUrl;
 
@@ -683,9 +675,8 @@
         setInterval(fetchFromCloud, 800);
       } else {
         loadFromStorage();
-        window.addEventListener('storage', (e) => {
-          if (e.key === STORAGE_KEY) loadFromStorage();
-        });
+        // 管理画面側でも定期的にクラウドから最新状態をプル
+        setInterval(fetchFromCloud, 1500);
       }
     }
 
@@ -693,7 +684,7 @@
       const obsInput = document.getElementById('obs-sync-url');
       obsInput.select();
       navigator.clipboard.writeText(obsInput.value).then(() => {
-        alert("OBS用同期URLをコピーしました！");
+        alert("OBS用同期URLをコピーしました！ (?obsだけで同期可能になりました)");
       });
     }
 
@@ -705,7 +696,7 @@
       clearTimeout(syncTimer);
       syncTimer = setTimeout(() => {
         pushToCloud(payload);
-      }, 200);
+      }, 150);
     }
 
     function buildPayload() {
@@ -747,15 +738,21 @@
 
       if (data.map) {
         const mapSel = document.getElementById('map-select');
-        if (mapSel) mapSel.value = data.map;
+        if (mapSel && mapSel.value !== data.map) mapSel.value = data.map;
         const mapImg = document.getElementById('map-img-display');
         setAgentImage(mapImg, data.map);
       }
 
       if (data.teams) {
-        if (document.getElementById('team-blue-name')) document.getElementById('team-blue-name').value = data.teams.blue || '';
-        if (document.getElementById('team-red-name')) document.getElementById('team-red-name').value = data.teams.red || '';
-        if (document.getElementById('team-red-logo')) document.getElementById('team-red-logo').value = data.teams.redLogo || '';
+        if (document.getElementById('team-blue-name') && document.getElementById('team-blue-name').value !== data.teams.blue) {
+          document.getElementById('team-blue-name').value = data.teams.blue || '';
+        }
+        if (document.getElementById('team-red-name') && document.getElementById('team-red-name').value !== data.teams.red) {
+          document.getElementById('team-red-name').value = data.teams.red || '';
+        }
+        if (document.getElementById('team-red-logo') && document.getElementById('team-red-logo').value !== data.teams.redLogo) {
+          document.getElementById('team-red-logo').value = data.teams.redLogo || '';
+        }
 
         document.getElementById('name-blue-display').innerText = data.teams.blue || '';
         document.getElementById('name-red-display').innerText = data.teams.red || '';
@@ -770,6 +767,19 @@
         }
       }
 
+      if (data.loadedTeamsData && loadedTeamsData.length === 0 && data.loadedTeamsData.length > 0) {
+        loadedTeamsData = data.loadedTeamsData;
+        updateTeamDropdowns();
+        if (data.selectedPresets) {
+          if (data.selectedPresets.blue) document.getElementById('select-team-blue-preset').value = data.selectedPresets.blue;
+          if (data.selectedPresets.red) document.getElementById('select-team-red-preset').value = data.selectedPresets.red;
+        }
+      }
+
+      if (data.sheetId && document.getElementById('sheet-id-input') && !document.getElementById('sheet-id-input').value) {
+        document.getElementById('sheet-id-input').value = data.sheetId;
+      }
+
       if (data.players) {
         Object.keys(data.players).forEach(id => {
           const p = data.players[id];
@@ -780,12 +790,21 @@
             if (!Array.from(nameEl.options).some(o => o.value === p.playerName)) {
               nameEl.innerHTML += `<option value="${p.playerName}">${p.playerName}</option>`;
             }
-            nameEl.value = p.playerName;
+            if (nameEl.value !== p.playerName) nameEl.value = p.playerName;
           }
-          if (document.getElementById(`agent-${id}`)) document.getElementById(`agent-${id}`).value = p.agent;
-          if (document.getElementById(`kda-${id}`)) document.getElementById(`kda-${id}`).value = p.kda;
-          if (document.getElementById(`acs-${id}`)) document.getElementById(`acs-${id}`).value = p.acs;
-          if (isMvp && document.getElementById(`fk-${id}`)) document.getElementById(`fk-${id}`).value = p.fk;
+          const agentEl = document.getElementById(`agent-${id}`);
+          if (agentEl && agentEl.value !== p.agent) agentEl.value = p.agent;
+
+          const kdaEl = document.getElementById(`kda-${id}`);
+          if (kdaEl && kdaEl.value !== p.kda) kdaEl.value = p.kda;
+
+          const acsEl = document.getElementById(`acs-${id}`);
+          if (acsEl && acsEl.value !== p.acs) acsEl.value = p.acs;
+
+          if (isMvp) {
+            const fkEl = document.getElementById(`fk-${id}`);
+            if (fkEl && fkEl.value !== p.fk) fkEl.value = p.fk;
+          }
 
           setAgentImage(document.getElementById(`img-${id}`), p.agent);
           document.getElementById(`name-disp-${id}`).innerText = p.playerName;
@@ -810,7 +829,8 @@
         method: 'POST',
         body: JSON.stringify(payload)
       })
-      .then(() => {
+      .then(res => {
+        if (!res.ok) throw new Error("サーバーエラー");
         if (statusEl) statusEl.innerText = "同期ステータス: ✅ 同期完了 (" + new Date().toLocaleTimeString() + ")";
       })
       .catch(() => {
@@ -946,6 +966,7 @@
 
     function resetAllState() {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem("val_room_id");
       location.reload();
     }
 
