@@ -6,8 +6,9 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      background: transparent;
+    html, body {
+      background: transparent !important;
+      background-color: rgba(0, 0, 0, 0) !important;
       font-family: 'Arial', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
       overflow: hidden;
       width: 1920px;
@@ -134,7 +135,7 @@
     }
 
     /* =========================================
-       OBS用 オーバーレイ画面本体 (1920x1080)
+       OBS用 オーバーレイ画面本体 (1920x1080 / 完全透過)
        ========================================= */
     #overlay-container {
       width: 1920px;
@@ -146,14 +147,15 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      background: transparent !important;
     }
 
     .screen-wrap {
       width: 1720px;
       height: 940px;
-      background: rgba(12, 18, 26, 0.92);
-      border: 2px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 30px 70px rgba(0,0,0,0.95);
+      background: transparent !important;
+      border: none;
+      box-shadow: none;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -164,8 +166,7 @@
       height: 90px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      background: rgba(8, 12, 18, 0.9);
-      border-bottom: 2px solid rgba(255,255,255,0.15);
+      background: transparent;
       z-index: 2;
     }
     .team-title {
@@ -175,7 +176,7 @@
       font-size: 38px;
       font-weight: 900;
       color: #fff;
-      text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
+      text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.9);
     }
     .team-title.blue { justify-content: flex-end; padding-right: 80px; border-bottom: 4px solid #00b4d8; }
     .team-title.red { justify-content: flex-start; padding-left: 80px; border-bottom: 4px solid #ff4655; }
@@ -196,23 +197,22 @@
     .metric-item {
       font-size: 13px;
       font-weight: 900;
-      color: #9ea7b3;
+      color: #e2e8f0;
       letter-spacing: 2px;
       text-transform: uppercase;
-      background: rgba(15, 22, 30, 0.95);
+      background: rgba(15, 22, 30, 0.75);
       padding: 3px 16px;
       border-radius: 3px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
     }
 
     .mvp-section {
       height: 220px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      border-bottom: 2px solid rgba(255,255,255,0.12);
-      background: rgba(10, 15, 22, 0.6);
+      background: transparent;
       z-index: 2;
     }
-    /* キャラとスコアを中央に寄せるため flex-end / flex-start に変更 */
     .mvp-card {
       display: flex;
       align-items: center;
@@ -228,8 +228,8 @@
       position: relative;
       border-radius: 4px;
       overflow: hidden;
-      background: #16222c;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      background: rgba(22, 34, 44, 0.8);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
     }
     .mvp-card.blue .mvp-avatar { border-left: 5px solid #00b4d8; }
     .mvp-card.red .mvp-avatar { border-right: 5px solid #ff4655; }
@@ -263,7 +263,7 @@
       font-weight: bold;
       color: #00d2ff;
       margin-bottom: 4px;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
+      text-shadow: 0 2px 5px rgba(0,0,0,0.95), 0 0 10px rgba(0,0,0,0.9);
     }
     .mvp-card.red .player-name-mvp { color: #ff5252; }
 
@@ -279,14 +279,14 @@
       height: 32px;
       display: flex;
       align-items: center;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
+      text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.9);
     }
 
     .members-section {
       flex: 1;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      background: rgba(10, 15, 22, 0.4);
+      background: transparent;
       z-index: 2;
       padding: 10px 40px;
       justify-items: center;
@@ -298,15 +298,14 @@
       flex-direction: column;
       justify-content: space-around;
     }
-    .members-col.blue { border-right: 1px solid rgba(255,255,255,0.08); padding-right: 20px; }
+    .members-col.blue { padding-right: 20px; }
     .members-col.red { padding-left: 20px; }
 
-    /* 通常メンバーも中央（中央線側）に寄せる */
     .member-row {
       display: flex;
       align-items: center;
       height: 64px;
-      background: rgba(255,255,255,0.03);
+      background: rgba(12, 18, 26, 0.55);
       padding: 0 12px;
       border-radius: 4px;
       gap: 20px;
@@ -321,7 +320,7 @@
       object-fit: cover;
       object-position: top center;
       border-radius: 4px;
-      background: #16222c;
+      background: rgba(22, 34, 44, 0.8);
     }
     .members-col.blue .member-avatar { border-left: 3px solid #00b4d8; }
     .members-col.red .member-avatar { border-right: 3px solid #ff4655; }
@@ -338,11 +337,12 @@
     .player-name-member {
       font-size: 13px;
       font-weight: bold;
-      color: #ccc;
+      color: #e2e8f0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 150px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.95);
     }
 
     .member-stats {
@@ -357,6 +357,7 @@
       height: 18px;
       display: flex;
       align-items: center;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.95);
     }
 
     .map-box {
@@ -365,8 +366,8 @@
       bottom: 20px;
       width: 260px;
       height: 145px;
-      background: #0f1620;
-      border: 2px solid rgba(255,255,255,0.2);
+      background: rgba(15, 22, 32, 0.8);
+      border: 2px solid rgba(255,255,255,0.25);
       border-radius: 6px;
       overflow: hidden;
       box-shadow: 0 10px 25px rgba(0,0,0,0.8);
@@ -380,7 +381,7 @@
       bottom: 20px;
       width: 140px;
       height: 140px;
-      background: #0d233a;
+      background: rgba(13, 35, 58, 0.8);
       border: 2px solid #00b4d8;
       border-radius: 6px;
       display: flex;
@@ -397,7 +398,7 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v14)</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v15 透過版)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
     <div class="sec-title t-sync">📡 OBSリアルタイム同期 URL</div>
@@ -467,7 +468,7 @@
 
       <!-- MVPセクション -->
       <div class="mvp-section">
-        <!-- 青側MVP (中央寄り) -->
+        <!-- 青側MVP -->
         <div class="mvp-card blue">
           <div class="mvp-avatar">
             <div class="mvp-badge">MVP</div>
@@ -483,7 +484,7 @@
           </div>
         </div>
 
-        <!-- 赤側MVP (中央寄り) -->
+        <!-- 赤側MVP -->
         <div class="mvp-card red">
           <div class="mvp-avatar" style="order: 2;">
             <div class="mvp-badge">MVP</div>
@@ -545,7 +546,7 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v14";
+    const STORAGE_KEY = "val_result_clean_v15";
     const CLOUD_API_BASE = "https://kvdb.io/A9x7kP2mQ8wL4vN6zR1tY";
     let loadedTeamsData = [];
     let syncTimer = null;
@@ -640,7 +641,6 @@
             </div>`;
 
           if (i > 1) {
-            // 通常メンバーも中央（中央線側）に寄せるレイアウト
             if (side === 'blue') {
               membersCol.innerHTML += `
                 <div class="member-row">
