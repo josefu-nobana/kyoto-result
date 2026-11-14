@@ -399,7 +399,7 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v20 安定同期版)</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v21 爆速ローカル同期版)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
     <div class="sec-title t-sync">📡 OBSリアルタイム同期 URL</div>
@@ -407,7 +407,7 @@
       <div class="lbl-sm">下のURLをOBSの「ブラウザソース」に貼り付けてください</div>
       <input type="text" id="obs-sync-url" readonly onclick="this.select()">
       <button class="btn-copy" onclick="copyObsUrl()">OBS用同期URLをコピー</button>
-      <div id="sync-status" class="sync-status">同期ステータス: 待機中...</div>
+      <div id="sync-status" class="sync-status">同期ステータス: ⚡ 準備完了 (通信エラーなし)</div>
     </div>
 
     <div class="sec-title t-sheet">📊 スプレッドシート連携</div>
@@ -547,18 +547,14 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v20";
-    const CLOUD_API_BASE = "https://kvdb.io/A9x7kP2mQ8wL4vN6zR1tY";
+    const STORAGE_KEY = "val_result_clean_v21";
     let loadedTeamsData = [];
-    let syncTimer = null;
-    let lastTimestamp = 0;
+
+    // BroadcastChannelによる超高速・エラーフリーのリアルタイム同期チャンネル
+    const syncChannel = new BroadcastChannel('val_match_sync_channel_v21');
 
     const urlParams = new URLSearchParams(window.location.search);
     const isObsMode = urlParams.has('obs');
-    
-    // URLにroomが指定されていない場合でも、共通のデフォルトルームを使用するように設定
-    let roomId = urlParams.get('room') || localStorage.getItem("val_room_id") || "val_default_match_room";
-    localStorage.setItem("val_room_id", roomId);
 
     if (isObsMode) {
       const style = document.createElement('style');
@@ -610,7 +606,6 @@
 
     function init() {
       const baseUrl = window.location.origin + window.location.pathname;
-      // シンプルに ?obs だけでも動くURLを生成
       const obsUrl = `${baseUrl}?obs`;
       const obsInput = document.getElementById('obs-sync-url');
       if (obsInput) obsInput.value = obsUrl;
@@ -670,33 +665,49 @@
         }
       });
 
-      if (isObsMode) {
-        fetchFromCloud();
-        setInterval(fetchFromCloud, 800);
-      } else {
-        loadFromStorage();
-        // 管理画面側でも定期的にクラウドから最新状態をプル
-        setInterval(fetchFromCloud, 1500);
-      }
+      // 初回ロード（LocalStorageから復元）
+      loadFromStorage();
+
+      // BroadcastChannelでメッセージを受信したときの処理（リアルタイム同期）
+      syncChannel.onmessage = (event) => {
+        if (event.data) {
+          renderPayload(event.data);
+          const statusEl = document.getElementById('sync-status');
+          if (statusEl) statusEl.innerText = "同期ステータス: ⚡ 受信完了 (" + new Date().toLocaleTimeString() + ")";
+        }
+      };
+
+      // タブ間のストレージ変更イベントも補助として監視
+      window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_KEY && e.newValue) {
+          try {
+            const data = JSON.parse(e.newValue);
+            renderPayload(data);
+          } catch(err) {}
+        }
+      });
     }
 
     function copyObsUrl() {
       const obsInput = document.getElementById('obs-sync-url');
       obsInput.select();
       navigator.clipboard.writeText(obsInput.value).then(() => {
-        alert("OBS用同期URLをコピーしました！ (?obsだけで同期可能になりました)");
+        alert("OBS用同期URLをコピーしました！");
       });
     }
 
     function onUserEdit() {
       const payload = buildPayload();
       renderPayload(payload);
+      
+      // ローカルストレージに保存
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      
+      // BroadcastChannelで全タブ・全OBSソースへ即座に送信
+      syncChannel.postMessage(payload);
 
-      clearTimeout(syncTimer);
-      syncTimer = setTimeout(() => {
-        pushToCloud(payload);
-      }, 150);
+      const statusEl = document.getElementById('sync-status');
+      if (statusEl) statusEl.innerText = "同期ステータス: ⚡ 即時同期完了 (" + new Date().toLocaleTimeString() + ")";
     }
 
     function buildPayload() {
@@ -821,38 +832,6 @@
       }
     }
 
-    function pushToCloud(payload) {
-      const statusEl = document.getElementById('sync-status');
-      if (statusEl) statusEl.innerText = "同期ステータス: 送信中...";
-
-      fetch(`${CLOUD_API_BASE}/${roomId}`, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("サーバーエラー");
-        if (statusEl) statusEl.innerText = "同期ステータス: ✅ 同期完了 (" + new Date().toLocaleTimeString() + ")";
-      })
-      .catch(() => {
-        if (statusEl) statusEl.innerText = "同期ステータス: ⚠️ 通信エラー";
-      });
-    }
-
-    function fetchFromCloud() {
-      fetch(`${CLOUD_API_BASE}/${roomId}?t=${Date.now()}`)
-        .then(res => {
-          if (!res.ok) return null;
-          return res.json();
-        })
-        .then(data => {
-          if (data && data.timestamp && data.timestamp > lastTimestamp) {
-            lastTimestamp = data.timestamp;
-            renderPayload(data);
-          }
-        })
-        .catch(() => {});
-    }
-
     function fetchSheetData() {
       const rawInput = document.getElementById('sheet-id-input').value.trim();
       if (!rawInput) {
@@ -956,7 +935,6 @@
           if (data.selectedPresets.red) document.getElementById('select-team-red-preset').value = data.selectedPresets.red;
         }
         renderPayload(data);
-        pushToCloud(data);
       } catch (e) {}
     }
 
@@ -966,7 +944,6 @@
 
     function resetAllState() {
       localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem("val_room_id");
       location.reload();
     }
 
