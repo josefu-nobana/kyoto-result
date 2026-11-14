@@ -60,6 +60,7 @@
     .t-blue { background: #00b4d8; color: #fff; }
     .t-red { background: #ff4655; color: #fff; }
     .t-map { background: #ffb142; color: #111; }
+    .t-sheet { background: #2ecc71; color: #111; }
 
     .ctrl-box {
       background: rgba(255,255,255,0.06);
@@ -92,6 +93,16 @@
       color: white;
       font-size: 12px;
       width: 100%;
+    }
+
+    .btn-action {
+      background: #2ecc71;
+      color: #111;
+      font-weight: bold;
+      border: none;
+      padding: 6px;
+      border-radius: 4px;
+      cursor: pointer;
     }
 
     .btn-reset {
@@ -223,17 +234,31 @@
     .mvp-card.blue .mvp-badge { left: 8px; }
     .mvp-card.red .mvp-badge { right: 8px; }
 
+    .mvp-info {
+      display: flex;
+      flex-direction: column;
+      margin: 0 25px;
+      gap: 4px;
+    }
+    .mvp-card.blue .mvp-info { align-items: flex-start; }
+    .mvp-card.red .mvp-info { align-items: flex-end; text-align: right; }
+
+    .player-name-mvp {
+      font-size: 20px;
+      font-weight: bold;
+      color: #00d2ff;
+      margin-bottom: 4px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
+    }
+    .mvp-card.red .player-name-mvp { color: #ff5252; }
+
     .mvp-stats {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin: 0 35px;
+      gap: 8px;
     }
-    .mvp-card.blue .mvp-stats { align-items: flex-start; }
-    .mvp-card.red .mvp-stats { align-items: flex-end; text-align: right; }
-
     .stat-val-mvp {
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 900;
       color: #fff;
       height: 32px;
@@ -269,7 +294,7 @@
       background: rgba(255,255,255,0.03);
       padding: 0 12px;
       border-radius: 4px;
-      gap: 30px;
+      gap: 20px;
       width: 100%;
     }
     .members-col.blue .member-row { justify-content: flex-start; }
@@ -286,16 +311,31 @@
     .members-col.blue .member-avatar { border-left: 3px solid #00b4d8; }
     .members-col.red .member-avatar { border-right: 3px solid #ff4655; }
 
-    .member-stats {
+    .member-info {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 2px;
+      min-width: 140px;
     }
-    .members-col.blue .member-stats { align-items: flex-start; }
-    .members-col.red .member-stats { align-items: flex-end; text-align: right; }
+    .members-col.blue .member-info { align-items: flex-start; }
+    .members-col.red .member-info { align-items: flex-end; text-align: right; }
 
+    .player-name-member {
+      font-size: 13px;
+      font-weight: bold;
+      color: #ccc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+
+    .member-stats {
+      display: flex;
+      gap: 20px;
+    }
     .stat-val-member {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 900;
       color: #fff;
       height: 20px;
@@ -346,6 +386,13 @@
     <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
+    <!-- スプレッドシート連携 -->
+    <div class="sec-title t-sheet">📊 スプレッドシート連携</div>
+    <div class="ctrl-box">
+      <input type="text" id="sheet-id-input" placeholder="スプレッドシートIDを入力">
+      <button class="btn-action" onclick="fetchSheetData()">データを読み込み</button>
+    </div>
+
     <div class="sec-title t-map">🗺️ マップ選択</div>
     <div class="ctrl-box">
       <select id="map-select" onchange="updateAll()">
@@ -360,16 +407,27 @@
       </select>
     </div>
 
+    <!-- BLUE TEAM -->
     <div class="sec-title t-blue">BLUE TEAM (左側)</div>
     <div class="ctrl-box">
-      <input type="text" id="team-blue-name" value="東京TECH B" oninput="updateAll()" placeholder="チーム名">
+      <select id="select-team-blue-preset" onchange="applyTeamPreset('blue')">
+        <option value="">-- シートからチームを選択 --</option>
+      </select>
+      <div class="lbl-sm">チーム名</div>
+      <input type="text" id="team-blue-name" value="東京TECH B" oninput="updateAll()">
     </div>
     <div id="blue-controls"></div>
 
+    <!-- RED TEAM -->
     <div class="sec-title t-red">RED TEAM (右側)</div>
     <div class="ctrl-box">
-      <input type="text" id="team-red-name" value="名古屋TECH B" oninput="updateAll()" placeholder="チーム名">
-      <input type="text" id="team-red-logo" value="" oninput="updateAll()" placeholder="右下ロゴファイル名 (例: logo.png)">
+      <select id="select-team-red-preset" onchange="applyTeamPreset('red')">
+        <option value="">-- シートからチームを選択 --</option>
+      </select>
+      <div class="lbl-sm">チーム名</div>
+      <input type="text" id="team-red-name" value="名古屋TECH B" oninput="updateAll()">
+      <div class="lbl-sm">右下チームロゴURL またはファイル名</div>
+      <input type="text" id="team-red-logo" value="" oninput="updateAll()">
     </div>
     <div id="red-controls"></div>
   </div>
@@ -388,41 +446,51 @@
         <div class="metric-item">FIRST KILLS</div>
       </div>
 
+      <!-- MVPセクション -->
       <div class="mvp-section">
         <div class="mvp-card blue">
           <div class="mvp-avatar">
             <div class="mvp-badge">MVP</div>
             <img id="img-blue-1" src="images/jett.png" alt="agent">
           </div>
-          <div class="mvp-stats">
-            <div id="kda-blue-1" class="stat-val-mvp">23 / 13</div>
-            <div id="acs-blue-1" class="stat-val-mvp">340</div>
-            <div id="fk-blue-1" class="stat-val-mvp">5</div>
+          <div class="mvp-info">
+            <div id="name-disp-blue-1" class="player-name-mvp">Player 1</div>
+            <div class="mvp-stats">
+              <div id="kda-blue-1" class="stat-val-mvp">23 / 13</div>
+              <div id="acs-blue-1" class="stat-val-mvp">340</div>
+              <div id="fk-blue-1" class="stat-val-mvp">5</div>
+            </div>
           </div>
         </div>
 
         <div class="mvp-card red">
+          <div class="mvp-info" style="align-items: flex-end;">
+            <div id="name-disp-red-1" class="player-name-mvp">Player 1</div>
+            <div class="mvp-stats" style="align-items: flex-end;">
+              <div id="kda-red-1" class="stat-val-mvp">20 / 9</div>
+              <div id="acs-red-1" class="stat-val-mvp">261</div>
+              <div id="fk-red-1" class="stat-val-mvp">1</div>
+            </div>
+          </div>
           <div class="mvp-avatar">
             <div class="mvp-badge">MVP</div>
             <img id="img-red-1" src="images/omen.png" alt="agent">
           </div>
-          <div class="mvp-stats">
-            <div id="kda-red-1" class="stat-val-mvp">20 / 9</div>
-            <div id="acs-red-1" class="stat-val-mvp">261</div>
-            <div id="fk-red-1" class="stat-val-mvp">1</div>
-          </div>
         </div>
       </div>
 
+      <!-- 通常メンバーセクション -->
       <div class="members-section">
         <div id="blue-members-col" class="members-col blue"></div>
         <div id="red-members-col" class="members-col red"></div>
       </div>
 
+      <!-- 左下のマップ -->
       <div class="map-box">
         <img id="map-img-display" src="images/sunset.png" alt="map">
       </div>
 
+      <!-- 右下のチームロゴ -->
       <div id="team-logo-container" class="logo-box" style="display:none;">
         <img id="team-logo-display" src="" alt="logo">
       </div>
@@ -458,9 +526,9 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v6";
+    const STORAGE_KEY = "val_result_clean_v7";
+    let loadedTeamsData = [];
 
-    // OBSモード判定
     if (new URLSearchParams(window.location.search).has('obs')) {
       const style = document.createElement('style');
       style.innerHTML = '#admin-panel, #toggle-btn { display: none !important; }';
@@ -481,7 +549,12 @@
       return html;
     }
 
-    // 初期化処理
+    function createPlayerSelectHTML(id, defaultName) {
+      return `<select id="name-input-${id}" onchange="updateAll()">
+        <option value="${defaultName}">${defaultName}</option>
+      </select>`;
+    }
+
     function init() {
       ['blue', 'red'].forEach(side => {
         const ctrl = document.getElementById(`${side}-controls`);
@@ -491,13 +564,17 @@
         for (let i = 1; i <= 5; i++) {
           const id = `${side}-${i}`;
           const defAgent = i === 1 ? (side === 'blue' ? 'jett' : 'omen') : (side === 'blue' ? 'sova' : 'neon');
+          const defName = `Player ${i}`;
           const roleText = i === 1 ? '👑 MVP (KD/ACS/FK)' : `メンバー ${i} (KD/ACS)`;
 
           ctrl.innerHTML += `
             <div class="ctrl-row">
               <span class="lbl-sm" style="font-weight:bold; color:${titleColor};">${side.toUpperCase()} ${roleText}</span>
+              <div class="lbl-sm">選手名選択</div>
+              ${createPlayerSelectHTML(id, defName)}
+              <div class="lbl-sm" style="margin-top:2px;">エージェント</div>
               ${createAgentSelectHTML(id, defAgent)}
-              <div class="ctrl-grid">
+              <div class="ctrl-grid" style="margin-top:4px;">
                 <div><div class="lbl-sm">KD</div><input type="text" id="kda-${id}" value="${i===1?'23 / 13':'5 / 16'}" oninput="updateAll()"></div>
                 <div><div class="lbl-sm">ACS</div><input type="number" id="acs-${id}" value="${i===1?'340':'104'}" oninput="updateAll()"></div>
                 <div><div class="lbl-sm">FK ${i===1?'(MVP)':'(-)'}</div><input type="number" id="fk-${id}" value="${i===1?'5':'0'}" ${i>1?'disabled':''} oninput="updateAll()"></div>
@@ -508,9 +585,12 @@
             membersCol.innerHTML += `
               <div class="member-row">
                 <img id="img-${id}" class="member-avatar" src="images/${defAgent}.png" alt="agent">
-                <div class="member-stats">
-                  <div id="kda-disp-${id}" class="stat-val-member">5 / 16</div>
-                  <div id="acs-disp-${id}" class="stat-val-member">104</div>
+                <div class="member-info">
+                  <div id="name-disp-${id}" class="player-name-member">${defName}</div>
+                  <div class="member-stats">
+                    <div id="kda-disp-${id}" class="stat-val-member">5 / 16</div>
+                    <div id="acs-disp-${id}" class="stat-val-member">104</div>
+                  </div>
                 </div>
               </div>`;
           }
@@ -519,20 +599,98 @@
 
       loadFromStorage();
 
-      // 他のタブからの変更を検知
       window.addEventListener('storage', (e) => {
         if (e.key === STORAGE_KEY) loadFromStorage();
       });
     }
 
-    // すべての入力値をUIとストレージに即時反映
+    // Googleスプレッドシートデータの読み込み
+    function fetchSheetData() {
+      const sheetId = document.getElementById('sheet-id-input').value.trim();
+      if (!sheetId) {
+        alert("スプレッドシートIDを入力してください");
+        return;
+      }
+
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+
+      fetch(url)
+        .then(res => res.text())
+        .then(text => {
+          const json = JSON.parse(text.substr(47).slice(0, -2));
+          const rows = json.table.rows;
+          loadedTeamsData = [];
+
+          rows.forEach(row => {
+            if (!row.c || !row.c[0]) return;
+            const teamName = row.c[0] && row.c[0].v ? String(row.c[0].v).trim() : "";
+            let teamLogo = row.c[2] && row.c[2].v ? String(row.c[2].v).trim() : "";
+            
+            const players = [];
+            for (let col = 3; col < row.c.length; col++) {
+              if (row.c[col] && row.c[col].v) {
+                players.push(String(row.c[col].v).trim());
+              }
+            }
+
+            if (teamName) {
+              loadedTeamsData.push({ teamName, teamLogo, players });
+            }
+          });
+
+          updateTeamDropdowns();
+          alert(`${loadedTeamsData.length} 件のチーム情報を読み込みました！`);
+        })
+        .catch(err => {
+          console.error(err);
+          alert("データの取得に失敗しました。スプレッドシートの公開設定やIDを確認してください。");
+        });
+    }
+
+    function updateTeamDropdowns() {
+      ['blue', 'red'].forEach(side => {
+        const select = document.getElementById(`select-team-${side}-preset`);
+        let html = '<option value="">-- シートからチームを選択 --</option>';
+        loadedTeamsData.forEach((t, idx) => {
+          html += `<option value="${idx}">${t.teamName}</option>`;
+        });
+        select.innerHTML = html;
+      });
+    }
+
+    function applyTeamPreset(side) {
+      const select = document.getElementById(`select-team-${side}-preset`);
+      const idx = select.value;
+      if (idx === "") return;
+
+      const team = loadedTeamsData[idx];
+      document.getElementById(`team-${side}-name`).value = team.teamName;
+      if (side === 'red' && team.teamLogo) {
+        document.getElementById(`team-red-logo`).value = team.teamLogo;
+      }
+
+      for (let i = 1; i <= 5; i++) {
+        const id = `${side}-${i}`;
+        const playerSelect = document.getElementById(`name-input-${id}`);
+        if (playerSelect) {
+          let optionsHtml = '';
+          team.players.forEach(p => {
+            optionsHtml += `<option value="${p}">${p}</option>`;
+          });
+          playerSelect.innerHTML = optionsHtml;
+          if (team.players[i - 1]) {
+            playerSelect.value = team.players[i - 1];
+          }
+        }
+      }
+      updateAll();
+    }
+
     function updateAll() {
       try {
-        // マップ
         const mapVal = document.getElementById('map-select').value;
         document.getElementById('map-img-display').src = `images/${mapVal}.png`;
 
-        // チーム名・ロゴ
         const blueName = document.getElementById('team-blue-name').value;
         const redName = document.getElementById('team-red-name').value;
         const redLogo = document.getElementById('team-red-logo').value;
@@ -549,8 +707,13 @@
           lBox.style.display = 'none';
         }
 
-        // プレイヤーデータ収集・反映
         const payload = {
+          sheetId: document.getElementById('sheet-id-input').value,
+          loadedTeamsData: loadedTeamsData,
+          selectedPresets: {
+            blue: document.getElementById('select-team-blue-preset').value,
+            red: document.getElementById('select-team-red-preset').value
+          },
           map: mapVal,
           teams: { blue: blueName, red: redName, redLogo: redLogo },
           players: {}
@@ -559,15 +722,16 @@
         for (let i = 1; i <= 5; i++) {
           ['blue', 'red'].forEach(side => {
             const id = `${side}-${i}`;
+            const nameEl = document.getElementById(`name-input-${id}`);
+            const playerName = nameEl ? nameEl.value : `Player ${i}`;
             const agent = document.getElementById(`agent-${id}`).value;
             const kda = document.getElementById(`kda-${id}`).value;
             const acs = document.getElementById(`acs-${id}`).value;
             const fk = document.getElementById(`fk-${id}`).value;
 
-            // アバター画像更新
             document.getElementById(`img-${id}`).src = `images/${agent}.png`;
+            document.getElementById(`name-disp-${id}`).innerText = playerName;
 
-            // 画面上の数値更新
             if (i > 1) {
               document.getElementById(`kda-disp-${id}`).innerText = kda;
               document.getElementById(`acs-disp-${id}`).innerText = acs;
@@ -577,7 +741,7 @@
               document.getElementById(`fk-${id}`).innerText = fk;
             }
 
-            payload.players[id] = { agent, kda, acs, fk };
+            payload.players[id] = { playerName, agent, kda, acs, fk };
           });
         }
 
@@ -587,12 +751,20 @@
       }
     }
 
-    // ストレージから読み込み
     function loadFromStorage() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) return;
       try {
         const data = JSON.parse(saved);
+        if (data.sheetId) document.getElementById('sheet-id-input').value = data.sheetId;
+        if (data.loadedTeamsData) {
+          loadedTeamsData = data.loadedTeamsData;
+          updateTeamDropdowns();
+        }
+        if (data.selectedPresets) {
+          if (data.selectedPresets.blue) document.getElementById('select-team-blue-preset').value = data.selectedPresets.blue;
+          if (data.selectedPresets.red) document.getElementById('select-team-red-preset').value = data.selectedPresets.red;
+        }
         if (data.map) document.getElementById('map-select').value = data.map;
         if (data.teams) {
           document.getElementById('team-blue-name').value = data.teams.blue || '';
@@ -603,12 +775,20 @@
           Object.keys(data.players).forEach(id => {
             const p = data.players[id];
             const isMvp = id.endsWith('-1');
+            const nameEl = document.getElementById(`name-input-${id}`);
+            if (nameEl) {
+              if (!Array.from(nameEl.options).some(o => o.value === p.playerName)) {
+                nameEl.innerHTML += `<option value="${p.playerName}">${p.playerName}</option>`;
+              }
+              nameEl.value = p.playerName;
+            }
             if (document.getElementById(`agent-${id}`)) document.getElementById(`agent-${id}`).value = p.agent;
             if (document.getElementById(`kda-${id}`)) document.getElementById(`kda-${id}`).value = p.kda;
             if (document.getElementById(`acs-${id}`)) document.getElementById(`acs-${id}`).value = p.acs;
             if (isMvp && document.getElementById(`fk-${id}`)) document.getElementById(`fk-${id}`).value = p.fk;
 
             if (document.getElementById(`img-${id}`)) document.getElementById(`img-${id}`).src = `images/${p.agent}.png`;
+            if (document.getElementById(`name-disp-${id}`)) document.getElementById(`name-disp-${id}`).innerText = p.playerName;
 
             if (!isMvp) {
               if (document.getElementById(`kda-disp-${id}`)) document.getElementById(`kda-disp-${id}`).innerText = p.kda;
