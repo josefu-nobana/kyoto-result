@@ -399,7 +399,7 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v25 修正版)</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v26 テキスト入力対応版)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
     <div class="sec-title t-sync">📡 OBSリアルタイム同期 URL</div>
@@ -467,7 +467,7 @@
         <div class="metric-item">FIRST KILLS</div>
       </div>
 
-      <!-- MVPセクション（表示用IDを kda-disp-*, acs-disp-*, fk-disp-* に独立化） -->
+      <!-- MVPセクション -->
       <div class="mvp-section">
         <!-- 青側MVP -->
         <div class="mvp-card blue">
@@ -547,7 +547,7 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v25";
+    const STORAGE_KEY = "val_result_clean_v26";
     const TOPIC_URL = "https://ntfy.sh/josefu_val_overlay_2026_secret";
     
     let loadedTeamsData = [];
@@ -599,10 +599,9 @@
       return html;
     }
 
-    function createPlayerSelectHTML(id, defaultName) {
-      return `<select id="name-input-${id}" onchange="onUserEdit()">
-        <option value="${defaultName}">${defaultName}</option>
-      </select>`;
+    // プレイヤー名を自由に入力できるテキストボックスに改良
+    function createPlayerInputHTML(id, defaultName) {
+      return `<input type="text" id="name-input-${id}" value="${defaultName}" oninput="onUserEdit()">`;
     }
 
     function init() {
@@ -625,8 +624,8 @@
           ctrl.innerHTML += `
             <div class="ctrl-row">
               <span class="lbl-sm" style="font-weight:bold; color:${titleColor};">${side.toUpperCase()} ${roleText}</span>
-              <div class="lbl-sm">選手名選択</div>
-              ${createPlayerSelectHTML(id, defName)}
+              <div class="lbl-sm">選手名入力</div>
+              ${createPlayerInputHTML(id, defName)}
               <div class="lbl-sm" style="margin-top:2px;">エージェント</div>
               ${createAgentSelectHTML(id, defAgent)}
               <div class="ctrl-grid" style="margin-top:4px;">
@@ -834,13 +833,8 @@
           const isMvp = id.endsWith('-1');
 
           const nameEl = document.getElementById(`name-input-${id}`);
-          if (nameEl && p.playerName) {
-            if (!Array.from(nameEl.options).some(o => o.value === p.playerName)) {
-              nameEl.innerHTML += `<option value="${p.playerName}">${p.playerName}</option>`;
-            }
-            if (nameEl && (isSelf || document.activeElement !== nameEl) && nameEl.value !== p.playerName) {
-              nameEl.value = p.playerName;
-            }
+          if (nameEl && (isSelf || document.activeElement !== nameEl) && nameEl.value !== p.playerName) {
+            nameEl.value = p.playerName;
           }
 
           const agentEl = document.getElementById(`agent-${id}`);
@@ -868,7 +862,6 @@
           setAgentImage(document.getElementById(`img-${id}`), p.agent);
           document.getElementById(`name-disp-${id}`).innerText = p.playerName;
 
-          // 画面表示用要素（-disp-付き）を確実に更新
           const kdaDisp = document.getElementById(`kda-disp-${id}`);
           if (kdaDisp) kdaDisp.innerText = p.kda;
 
@@ -953,19 +946,12 @@
 
       for (let i = 1; i <= 5; i++) {
         const id = `${side}-${i}`;
-        const playerSelect = document.getElementById(`name-input-${id}`);
-        if (playerSelect) {
-          let optionsHtml = '';
-          if (team.players && team.players.length > 0) {
-            team.players.forEach(p => {
-              optionsHtml += `<option value="${p}">${p}</option>`;
-            });
-          } else {
-            optionsHtml = `<option value="Player ${i}">Player ${i}</option>`;
-          }
-          playerSelect.innerHTML = optionsHtml;
+        const nameInput = document.getElementById(`name-input-${id}`);
+        if (nameInput) {
           if (team.players && team.players[i - 1]) {
-            playerSelect.value = team.players[i - 1];
+            nameInput.value = team.players[i - 1];
+          } else {
+            nameInput.value = `Player ${i}`;
           }
         }
       }
