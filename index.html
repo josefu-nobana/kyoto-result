@@ -100,10 +100,11 @@
       color: #111;
       font-weight: bold;
       border: none;
-      padding: 6px;
+      padding: 8px;
       border-radius: 4px;
       cursor: pointer;
     }
+    .btn-action:hover { background: #27ae60; }
 
     .btn-reset {
       background: #e74c3c;
@@ -377,14 +378,15 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (最新版 v10)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
     <!-- スプレッドシート連携 -->
-    <div class="sec-title t-sheet">📊 スプレッドシート連携 (CSV)</div>
+    <div class="sec-title t-sheet">📊 スプレッドシート連携</div>
     <div class="ctrl-box">
-      <input type="text" id="sheet-id-input" placeholder="スプレッドシートIDを入力">
-      <button class="btn-action" onclick="fetchSheetData()">CSVからデータを読み込み</button>
+      <div class="lbl-sm">スプレッドシートのURL または ID を貼り付け</div>
+      <input type="text" id="sheet-id-input" placeholder="https://docs.google.com/spreadsheets/d/...">
+      <button class="btn-action" onclick="fetchSheetData()">シートからチーム・選手を読み込む</button>
     </div>
 
     <div class="sec-title t-map">🗺️ マップ選択</div>
@@ -407,7 +409,7 @@
       <select id="select-team-blue-preset" onchange="applyTeamPreset('blue')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <div class="lbl-sm">チーム名</div>
+      <div class="lbl-sm">チーム名（直接編集も可）</div>
       <input type="text" id="team-blue-name" value="東京TECH B" oninput="updateAll()">
     </div>
     <div id="blue-controls"></div>
@@ -418,7 +420,7 @@
       <select id="select-team-red-preset" onchange="applyTeamPreset('red')">
         <option value="">-- シートからチームを選択 --</option>
       </select>
-      <div class="lbl-sm">チーム名</div>
+      <div class="lbl-sm">チーム名（直接編集も可）</div>
       <input type="text" id="team-red-name" value="名古屋TECH B" oninput="updateAll()">
       <div class="lbl-sm">右下チームロゴURL またはファイル名</div>
       <input type="text" id="team-red-logo" value="" oninput="updateAll()">
@@ -520,7 +522,7 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v8";
+    const STORAGE_KEY = "val_result_clean_v10";
     let loadedTeamsData = [];
 
     if (new URLSearchParams(window.location.search).has('obs')) {
@@ -598,13 +600,17 @@
       });
     }
 
-    // Googleスプレッドシート（CSVエクスポート形式）からの確実な読み込み
+    // URLまたはIDからスプレッドシートIDを抽出してCSVを取得
     function fetchSheetData() {
-      const sheetId = document.getElementById('sheet-id-input').value.trim();
-      if (!sheetId) {
-        alert("スプレッドシートIDを入力してください");
+      const rawInput = document.getElementById('sheet-id-input').value.trim();
+      if (!rawInput) {
+        alert("スプレッドシートのURLまたはIDを入力してください");
         return;
       }
+
+      // URLがそのまま貼られた場合でも /d/ と /edit の間のIDを自動抽出
+      const match = rawInput.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      const sheetId = match ? match[1] : rawInput;
 
       const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
 
@@ -614,18 +620,17 @@
           return res.text();
         })
         .then(csvText => {
-          const lines = csvText.split('\n');
+          const lines = csvText.split(/\r?\n/);
           loadedTeamsData = [];
 
           lines.forEach((line, index) => {
-            if (index === 0) return; // 1行目（見出し）はスキップ
+            if (index === 0) return; // 1行目（見出し）をスキップ
             if (!line.trim()) return;
 
-            // カンマ区切りでパース
             const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
             const teamName = cols[0] || "";
             const teamLogo = cols[1] || "";
-            const players = cols.slice(2).filter(p => p !== ""); // 3列目以降を選手名として抽出
+            const players = cols.slice(2).filter(p => p !== ""); // C列以降を選手名として抽出
 
             if (teamName) {
               loadedTeamsData.push({ teamName, teamLogo, players });
@@ -633,11 +638,12 @@
           });
 
           updateTeamDropdowns();
-          alert(`${loadedTeamsData.length} 件のチーム情報を読み込みました！`);
+          updateAll();
+          alert(`${loadedTeamsData.length} 件のチーム情報を読み込みました！\nBLUE/RED TEAMのプルダウンからチームを選択してください。`);
         })
         .catch(err => {
           console.error(err);
-          alert("読み込みに失敗しました。スプレッドシートが「リンクを知っている全員が閲覧可」になっているか、IDが正しいか確認してください。");
+          alert("読み込みに失敗しました。\nスプレッドシートの共有設定が「リンクを知っている全員が閲覧可」になっているか確認してください。");
         });
     }
 
@@ -735,7 +741,6 @@
               document.getElementById(`acs-disp-${id}`).innerText = acs;
             } else {
               document.getElementById(`kda-${id}`).innerText = kda;
-              document.getElementById(`acs-id-${id}`)? document.getElementById(`acs-id-${id}`).innerText = acs : null;
               document.getElementById(`acs-${id}`).innerText = acs;
               document.getElementById(`fk-${id}`).innerText = fk;
             }
