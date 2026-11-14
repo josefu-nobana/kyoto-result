@@ -399,7 +399,7 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v21 爆速ローカル同期版)</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v23 ntfy.sh同期版)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
     <div class="sec-title t-sync">📡 OBSリアルタイム同期 URL</div>
@@ -407,7 +407,7 @@
       <div class="lbl-sm">下のURLをOBSの「ブラウザソース」に貼り付けてください</div>
       <input type="text" id="obs-sync-url" readonly onclick="this.select()">
       <button class="btn-copy" onclick="copyObsUrl()">OBS用同期URLをコピー</button>
-      <div id="sync-status" class="sync-status">同期ステータス: ⚡ 準備完了 (通信エラーなし)</div>
+      <div id="sync-status" class="sync-status">同期ステータス: ⚡ 接続待機中...</div>
     </div>
 
     <div class="sec-title t-sheet">📊 スプレッドシート連携</div>
@@ -547,11 +547,12 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v21";
+    const STORAGE_KEY = "val_result_clean_v23";
+    const TOPIC_URL = "https://ntfy.sh/josefu_val_overlay_2026_secret";
+    
     let loadedTeamsData = [];
-
-    // BroadcastChannelによる超高速・エラーフリーのリアルタイム同期チャンネル
-    const syncChannel = new BroadcastChannel('val_match_sync_channel_v21');
+    let isRemoteUpdating = false;
+    let sendTimer = null;
 
     const urlParams = new URLSearchParams(window.location.search);
     const isObsMode = urlParams.has('obs');
@@ -665,49 +666,81 @@
         }
       });
 
-      // 初回ロード（LocalStorageから復元）
+      // ローカルストレージからの初期読み込み
       loadFromStorage();
 
-      // BroadcastChannelでメッセージを受信したときの処理（リアルタイム同期）
-      syncChannel.onmessage = (event) => {
-        if (event.data) {
-          renderPayload(event.data);
+      // ntfy.shのSSE受信監視をスタート
+      listenForUpdates();
+    }
+
+    // ユーザーが入力・変更したときの送信処理
+    function onUserEdit() {
+      if (isRemoteUpdating) return;
+
+      const payload = buildPayload();
+      renderPayload(payload);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+
+      // デバウンス処理（連打による過剰な通信を防止）
+      clearTimeout(sendTimer);
+      sendTimer = setTimeout(() => {
+        fetch(TOPIC_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(() => {
           const statusEl = document.getElementById('sync-status');
-          if (statusEl) statusEl.innerText = "同期ステータス: ⚡ 受信完了 (" + new Date().toLocaleTimeString() + ")";
+          if (statusEl) statusEl.innerText = "同期ステータス: ✅ 送信完了 (" + new Date().toLocaleTimeString() + ")";
+        })
+        .catch(err => {
+          const statusEl = document.getElementById('sync-status');
+          if (statusEl) statusEl.innerText = "同期ステータス: ⚠️ 送信エラー";
+        });
+      }, 150);
+    }
+
+    // ntfy.shからのSSE受信
+    function listenForUpdates() {
+      const eventSource = new EventSource(TOPIC_URL + "/sse");
+      
+      eventSource.onopen = () => {
+        const statusEl = document.getElementById('sync-status');
+        if (statusEl) statusEl.innerText = "同期ステータス: ⚡ ntfy.sh 接続中";
+      };
+
+      eventSource.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          // ntfy.shのメッセージ本体を取り出す
+          let data = null;
+          if (message && message.message) {
+            data = JSON.parse(message.message);
+          } else if (message && message.payload) {
+            data = message.payload;
+          }
+
+          if (data) {
+            renderPayload(data);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            const statusEl = document.getElementById('sync-status');
+            if (statusEl) statusEl.innerText = "同期ステータス: ⚡ 受信＆更新完了 (" + new Date().toLocaleTimeString() + ")";
+          }
+        } catch (e) {
+          // 直接JSONが飛んできた場合のフォールバック
+          try {
+            const data = JSON.parse(event.data);
+            if (data && data.map) {
+              renderPayload(data);
+            }
+          } catch(err) {}
         }
       };
 
-      // タブ間のストレージ変更イベントも補助として監視
-      window.addEventListener('storage', (e) => {
-        if (e.key === STORAGE_KEY && e.newValue) {
-          try {
-            const data = JSON.parse(e.newValue);
-            renderPayload(data);
-          } catch(err) {}
-        }
-      });
-    }
-
-    function copyObsUrl() {
-      const obsInput = document.getElementById('obs-sync-url');
-      obsInput.select();
-      navigator.clipboard.writeText(obsInput.value).then(() => {
-        alert("OBS用同期URLをコピーしました！");
-      });
-    }
-
-    function onUserEdit() {
-      const payload = buildPayload();
-      renderPayload(payload);
-      
-      // ローカルストレージに保存
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      
-      // BroadcastChannelで全タブ・全OBSソースへ即座に送信
-      syncChannel.postMessage(payload);
-
-      const statusEl = document.getElementById('sync-status');
-      if (statusEl) statusEl.innerText = "同期ステータス: ⚡ 即時同期完了 (" + new Date().toLocaleTimeString() + ")";
+      eventSource.onerror = () => {
+        const statusEl = document.getElementById('sync-status');
+        if (statusEl) statusEl.innerText = "同期ステータス: 🔄 再接続中...";
+      };
     }
 
     function buildPayload() {
@@ -746,6 +779,9 @@
 
     function renderPayload(data) {
       if (!data) return;
+
+      // 無限ループ防止フラグをオン
+      isRemoteUpdating = true;
 
       if (data.map) {
         const mapSel = document.getElementById('map-select');
@@ -830,6 +866,11 @@
           }
         });
       }
+
+      // 一定時間後にループ防止フラグを解除
+      setTimeout(() => {
+        isRemoteUpdating = false;
+      }, 300);
     }
 
     function fetchSheetData() {
