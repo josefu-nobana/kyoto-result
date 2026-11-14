@@ -135,7 +135,7 @@
     }
 
     /* =========================================
-       OBS用 オーバーレイ画面本体 (1920x1080 / 完全透過)
+       OBS用 オーバーレイ画面本体 (1920x1080 / 拡大・完全透過)
        ========================================= */
     #overlay-container {
       width: 1920px;
@@ -151,8 +151,8 @@
     }
 
     .screen-wrap {
-      width: 1720px;
-      height: 940px;
+      width: 1780px;
+      height: 980px;
       background: transparent !important;
       border: none;
       box-shadow: none;
@@ -163,7 +163,7 @@
     }
 
     .teams-header {
-      height: 90px;
+      height: 95px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       background: transparent;
@@ -173,10 +173,10 @@
       display: flex;
       align-items: center;
       padding: 0 50px;
-      font-size: 38px;
+      font-size: 42px;
       font-weight: 900;
       color: #fff;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.9);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.95), 0 0 15px rgba(0,0,0,0.9);
     }
     .team-title.blue { justify-content: flex-end; padding-right: 80px; border-bottom: 4px solid #00b4d8; }
     .team-title.red { justify-content: flex-start; padding-left: 80px; border-bottom: 4px solid #ff4655; }
@@ -184,30 +184,30 @@
     .center-metrics {
       position: absolute;
       left: 50%;
-      top: 130px;
+      top: 135px;
       transform: translateX(-50%);
-      width: 200px;
+      width: 220px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;
+      gap: 20px;
       z-index: 5;
       text-align: center;
     }
     .metric-item {
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 900;
       color: #e2e8f0;
       letter-spacing: 2px;
       text-transform: uppercase;
-      background: transparent; /* 背景を完全透過に変更 */
+      background: transparent;
       padding: 3px 16px;
       border-radius: 3px;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 10px rgba(0,0,0,0.9);
+      text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.9);
     }
 
     .mvp-section {
-      height: 220px;
+      height: 240px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       background: transparent;
@@ -216,23 +216,24 @@
     .mvp-card {
       display: flex;
       align-items: center;
-      padding: 0 60px;
+      padding: 0 50px;
       position: relative;
     }
     .mvp-card.blue { justify-content: flex-end; }
     .mvp-card.red { justify-content: flex-start; }
 
+    /* MVPキャラ画像を大きく拡大 (170px × 220px) */
     .mvp-avatar {
-      width: 150px;
-      height: 190px;
+      width: 170px;
+      height: 220px;
       position: relative;
-      border-radius: 4px;
+      border-radius: 6px;
       overflow: hidden;
       background: rgba(22, 34, 44, 0.8);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.85);
     }
-    .mvp-card.blue .mvp-avatar { border-left: 5px solid #00b4d8; }
-    .mvp-card.red .mvp-avatar { border-right: 5px solid #ff4655; }
+    .mvp-card.blue .mvp-avatar { border-left: 6px solid #00b4d8; }
+    .mvp-card.red .mvp-avatar { border-right: 6px solid #ff4655; }
     .mvp-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
 
     .mvp-badge {
@@ -240,10 +241,10 @@
       top: 8px;
       background: #7b2cbf;
       color: #fff;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 900;
-      padding: 2px 10px;
-      border-radius: 2px;
+      padding: 3px 12px;
+      border-radius: 3px;
       letter-spacing: 1px;
     }
     .mvp-card.blue .mvp-badge { left: 8px; }
@@ -252,34 +253,36 @@
     .mvp-info {
       display: flex;
       flex-direction: column;
-      margin: 0 25px;
-      gap: 4px;
+      margin: 0 30px;
+      gap: 6px;
     }
     .mvp-card.blue .mvp-info { align-items: flex-start; }
     .mvp-card.red .mvp-info { align-items: flex-end; text-align: right; }
 
+    /* MVPプレイヤー名を拡大 */
     .player-name-mvp {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: bold;
       color: #00d2ff;
       margin-bottom: 4px;
-      text-shadow: 0 2px 5px rgba(0,0,0,0.95), 0 0 10px rgba(0,0,0,0.9);
+      text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.9);
     }
     .mvp-card.red .player-name-mvp { color: #ff5252; }
 
     .mvp-stats {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
+    /* MVPスコア（KD/ACS/FK）を大きく拡大 */
     .stat-val-mvp {
-      font-size: 24px;
+      font-size: 30px;
       font-weight: 900;
       color: #fff;
-      height: 32px;
+      height: 36px;
       display: flex;
       align-items: center;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.9);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.95), 0 0 15px rgba(0,0,0,0.9);
     }
 
     .members-section {
@@ -288,12 +291,12 @@
       grid-template-columns: 1fr 1fr;
       background: transparent;
       z-index: 2;
-      padding: 10px 40px;
+      padding: 15px 40px;
       justify-items: center;
     }
     .members-col {
       width: 100%;
-      max-width: 600px;
+      max-width: 650px;
       display: flex;
       flex-direction: column;
       justify-content: space-around;
@@ -301,72 +304,75 @@
     .members-col.blue { padding-right: 20px; }
     .members-col.red { padding-left: 20px; }
 
-    /* メンバー行の背景（グレーの箱）を完全に透過 */
+    /* 通常メンバー行を拡大 (高さ74px) */
     .member-row {
       display: flex;
       align-items: center;
-      height: 64px;
+      height: 74px;
       background: transparent !important;
       padding: 0 12px;
-      border-radius: 4px;
-      gap: 20px;
+      border-radius: 6px;
+      gap: 25px;
       width: 100%;
     }
     .members-col.blue .member-row { justify-content: flex-end; }
     .members-col.red .member-row { justify-content: flex-start; }
 
+    /* 通常メンバーのキャラ画像も大きく拡大 (64px × 64px) */
     .member-avatar {
-      width: 52px;
-      height: 52px;
+      width: 64px;
+      height: 64px;
       object-fit: cover;
       object-position: top center;
-      border-radius: 4px;
+      border-radius: 5px;
       background: rgba(22, 34, 44, 0.8);
     }
-    .members-col.blue .member-avatar { border-left: 3px solid #00b4d8; }
-    .members-col.red .member-avatar { border-right: 3px solid #ff4655; }
+    .members-col.blue .member-avatar { border-left: 4px solid #00b4d8; }
+    .members-col.red .member-avatar { border-right: 4px solid #ff4655; }
 
     .member-info {
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      min-width: 140px;
+      gap: 3px;
+      min-width: 180px;
     }
     .members-col.blue .member-info { align-items: flex-start; }
     .members-col.red .member-info { align-items: flex-end; text-align: right; }
 
+    /* 通常メンバーの名前を拡大 */
     .player-name-member {
-      font-size: 13px;
+      font-size: 16px;
       font-weight: bold;
       color: #e2e8f0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 150px;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+      max-width: 180px;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
     }
 
     .member-stats {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
     }
+    /* 通常メンバーのスコア（KD/ACS）を大きく拡大 */
     .stat-val-member {
-      font-size: 15px;
+      font-size: 19px;
       font-weight: 900;
       color: #fff;
-      height: 18px;
+      height: 22px;
       display: flex;
       align-items: center;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+      text-shadow: 0 1px 5px rgba(0,0,0,0.95);
     }
 
     .map-box {
       position: absolute;
       left: 30px;
       bottom: 20px;
-      width: 260px;
-      height: 145px;
+      width: 280px;
+      height: 155px;
       background: rgba(15, 22, 32, 0.8);
       border: 2px solid rgba(255,255,255,0.25);
       border-radius: 6px;
@@ -380,8 +386,8 @@
       position: absolute;
       right: 30px;
       bottom: 20px;
-      width: 140px;
-      height: 140px;
+      width: 150px;
+      height: 150px;
       background: rgba(13, 35, 58, 0.8);
       border: 2px solid #00b4d8;
       border-radius: 6px;
@@ -399,7 +405,7 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v16 枠なし完全透過版)</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v17 拡大配信版)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
     <div class="sec-title t-sync">📡 OBSリアルタイム同期 URL</div>
@@ -547,7 +553,7 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v16";
+    const STORAGE_KEY = "val_result_clean_v17";
     const CLOUD_API_BASE = "https://kvdb.io/A9x7kP2mQ8wL4vN6zR1tY";
     let loadedTeamsData = [];
     let syncTimer = null;
