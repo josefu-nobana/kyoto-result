@@ -65,7 +65,7 @@
       background: rgba(255,255,255,0.06);
       padding: 8px;
       border-radius: 4px;
-      margin-bottom: 8px;
+-      margin-bottom: 8px;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -177,9 +177,9 @@
       color: #fff;
       text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
     }
-    /* 青側チーム名を中央寄せに調整 */
-    .team-title.blue { justify-content: center; border-bottom: 4px solid #00b4d8; }
-    .team-title.red { justify-content: flex-end; border-bottom: 4px solid #ff4655; }
+    /* 青側チーム名を中央線側（右寄り）に寄せて配置 */
+    .team-title.blue { justify-content: flex-end; padding-right: 80px; border-bottom: 4px solid #00b4d8; }
+    .team-title.red { justify-content: flex-start; padding-left: 80px; border-bottom: 4px solid #ff4655; }
 
     .center-metrics {
       position: absolute;
@@ -220,7 +220,6 @@
       position: relative;
     }
     .mvp-card.blue { justify-content: flex-start; }
-    /* 赤側MVPの配置を調整（キャラとスコアの順序を修正） */
     .mvp-card.red { justify-content: flex-end; }
 
     .mvp-avatar {
@@ -345,7 +344,6 @@
       max-width: 150px;
     }
 
-    /* MVP以外のメンバーのスコアを縦並びに変更 */
     .member-stats {
       display: flex;
       flex-direction: column;
@@ -398,7 +396,7 @@
   <button id="toggle-btn" onclick="togglePanel()">⚙️ 管理パネル 開閉</button>
 
   <div id="admin-panel">
-    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v12)</h3>
+    <h3 style="margin: 0 0 8px 0; color: #ff4655; font-size: 14px;">VALORANT リザルト設定 (v13)</h3>
     <div style="margin-bottom: 8px;"><button class="btn-reset" onclick="resetAllState()">全リセット</button></div>
 
     <div class="sec-title t-sync">📡 OBSリアルタイム同期 URL</div>
@@ -484,7 +482,7 @@
           </div>
         </div>
 
-        <!-- 赤側MVP (キャラとスコアの順序を青側と同じに統一) -->
+        <!-- 赤側MVP -->
         <div class="mvp-card red">
           <div class="mvp-avatar" style="order: 2;">
             <div class="mvp-badge">MVP</div>
@@ -546,7 +544,7 @@
       ]}
     ];
 
-    const STORAGE_KEY = "val_result_clean_v12";
+    const STORAGE_KEY = "val_result_clean_v13";
     const CLOUD_API_BASE = "https://kvdb.io/A9x7kP2mQ8wL4vN6zR1tY";
     let loadedTeamsData = [];
     let syncTimer = null;
@@ -641,7 +639,6 @@
             </div>`;
 
           if (i > 1) {
-            // 赤側メンバー行も左から [アバター] [名前・スコア縦並び] に統一してすっきりさせる
             if (side === 'blue') {
               membersCol.innerHTML += `
                 <div class="member-row">
@@ -686,7 +683,7 @@
       const obsInput = document.getElementById('obs-sync-url');
       obsInput.select();
       navigator.clipboard.writeText(obsInput.value).then(() => {
-        alert("OBS用同期URLをコピーしました！\nOBSのブラウザソースのURLに貼り付けてください。");
+        alert("OBS用同期URLをコピーしました！");
       });
     }
 
